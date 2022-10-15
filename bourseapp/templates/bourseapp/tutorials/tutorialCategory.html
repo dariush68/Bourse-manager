@@ -1,0 +1,117 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load social_share %}
+{% block title %}
+    <title> {{ tutorial.title }}</title>
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables.min.css' %}"><!-- MDBootstrap Datatables  -->
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables-select.min.css' %}"><!-- MDBootstrap Datatables  -->
+
+
+    <!-- left section -->
+    <div class="col-md-12 mb-4">
+        {% for cat in tutorialSubCat %}
+
+            <!--Tutorial-->
+            <div class="card mt-3">
+                <div class="card-header" role="tab">
+                    <a href="{% url 'bourseapp:tutorial-subCategory' cat.id %}">
+                        <h5 class="text-center font-weight-bold mb-1">آموزش های {{ cat.title }}</h5>
+                    </a>
+                </div>
+                <!--Card content-->
+                <div class="card-body d-sm-flex justify-content-between mx-0">
+
+                    <!-- Grid row -->
+                    <div class="row">
+
+                        <!-- Grid column -->
+                        <div class="col-lg-7 mb-4 align-self-center text-center text-lg-right">
+
+                            <h2 class="h2 mb-5">
+                                {{ cat.title }}
+
+                                {% if request.user.is_superuser %}
+{#                                    <a href="{% url 'admin:bourseapp_tutorial_change' tutorial.id %}" target="_blank"><i class="fa fa-edit" style="color: #0d5bdd; font-size: 16px"></i></a>#}
+{#                                    <a href="{% url 'admin:bourseapp_tutorial_delete' tutorial.id %}" target="_blank"><i class="fa fa-trash" style="color: #9f105c; font-size: 16px"></i></a>#}
+                                {% endif %}
+                            </h2>
+
+                            <p class="font-weight-bold text-right">سطح: {{ cat.get_categoryLevel_display }}</p>
+                            <p class="font-weight-bold text-right">دسته بندی: {{ cat.category }}</p>
+
+                            <span class="badge badge-primary  float-left">{{ cat.user }}</span>
+                            <span class="badge badge-primary  float-left ml-1">{{ cat.createAt|to_jalali:'%y/%m/%d' }}</span>
+                            <div class="row mr-1">
+                                {% post_to_telegram cat.title url '<i class="fab fa-telegram fa-lg "></i>' %}
+                                {% post_to_twitter  cat.title url '<i class="fab fa-twitter fa-lg mr-2"></i>' %}
+                                <a data-toggle="tooltip" title="فعال در موبایل ها" href="whatsapp://send?text=http://{{ request.get_host }}{{url}}  {{ cat.title }}" data-action="share/whatsapp/share">
+                                    <i class="fab fa-whatsapp fa-lg mr-2"></i>
+                                </a>
+                            </div>
+
+                            <p class="text-muted mb-4">{{ cat.description | safe }}</p>
+
+
+                        </div>
+                        <!-- Grid column -->
+
+                        <!-- Grid column -->
+                        <div class="col-lg-5 mb-4">
+
+                            <!--  image -->
+                            <div class="view overlay">
+
+                                {% if cat.category == 'تحلیل بازار' %}
+                                    <img class="img-fluid mx-auto" src="{% static 'bourseapp/images/tutorial_bazar.jpg' %}" alt="{{ tutorial.category }}">
+                                {% elif cat.category == 'تحلیل بنیادی'%}
+                                    <img class="img-fluid mx-auto" src="{% static 'bourseapp/images/tutorial_fundamental.png' %}" alt="{{ tutorial.category }}">
+                                {% else %}
+                                    <img class="img-fluid mx-auto" src="{% static 'bourseapp/images/tutorial_technical.png' %}" alt="{{ tutorial.category }}">
+                                {% endif %}
+
+                                <a>
+                                    <div class="mask rgba-white-slight"></div>
+                                </a>
+                            </div>
+
+                        </div>
+                        <!-- Grid column -->
+
+                    </div>
+                    <!-- Grid row -->
+
+                </div>
+            </div>
+
+        {% endfor %}
+    </div>
+
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+
+    <!-- selected category id -->
+{#    <input type="hidden" id="category-selected-id" selected-id="-1">#}
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/jquery.min.js' %}"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/mdb.min.js' %}"></script>
+    <!-- MDB table core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/addons/datatables.min.js' %}"></script><!-- MDBootstrap Datatables  -->
+    <!-- MDB table core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/addons/datatables-select.min.js' %}"></script><!-- MDBootstrap Datatables  -->
+
+
+{% endblock %}

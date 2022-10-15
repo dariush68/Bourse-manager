@@ -1,0 +1,140 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load social_share %}
+{% load auth_extras %}
+{% block title %}
+    <title>تحلیل بنیادی {{ fundamental.company.symbol }}</title>
+
+    <meta name="description" content="{{ fundamental.description|truncatechars:120 }}"/>
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{ fundamental.title }}" />
+    <meta property="og:description" content="{{ fundamental.description|truncatechars:120 }}" />
+    <meta property="og:url" content="{{ request.get_host }}{% url 'bourseapp:fundamental-detail' fundamental.id %}"/>
+    <meta property="og:site_name" content="مدیابورس: اخبار و آموزش بورس" />
+    {% if fundamental.pic %}
+        <meta property="og:image" content="{{ request.get_host }}{{ fundamental.pic.url }}" />
+    {% endif %}
+    <meta property="article:tag" content="بورس" />
+    <meta property="article:tag" content="تحلیل بنیادی بورس" />
+    <meta property="article:tag" content="بورس تهران" />
+    <meta property="article:tag" content="{{ fundamental.company.symbol }}" />
+    <meta property="article:tag" content="{{ fundamental.company.fullName }}" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:description" content="{{ fundamental.description|truncatechars:120 }}" />
+    <meta name="twitter:title" content="{{ fundamental.title }}" />
+    {% if fundamental.pic %}
+        <meta name="twitter:image" content="{{ request.get_host }}{{ fundamental.pic.url }}" />
+    {% endif %}
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables.min.css' %}"><!-- MDBootstrap Datatables  -->
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables-select.min.css' %}"><!-- MDBootstrap Datatables  -->
+
+    <div class="container my-5 py-5 z-depth-1">
+
+        <!--Section: Content-->
+        <section class="px-md-5 mx-md-5 dark-grey-text text-center text-lg-left">
+
+            <!--Grid row-->
+            <div class="row">
+
+                <!--Grid column-->
+                <div class="col-lg-6 mb-4 mb-lg-0 ">
+
+                    <h3 class="font-weight-bold text-right">{{ fundamental.company.fullName }} ({{ fundamental.company.symbol }})</h3>
+
+                    <p class="font-weight-bold text-right">{{ fundamental.title }} - {{ fundamental.createAt|to_jalali:'%y/%m/%d' }}
+                        {% if request.user.is_superuser or request.user|has_group:"level1" %}
+                            <a class="small" href="{% url 'admin:bourseapp_fundamental_change' fundamental.id %}" target="_blank"><i class="fa fa-edit"></i></a>
+                        {% endif %}
+                    </p>
+                    <div class="row mr-1">
+                        {% post_to_telegram fundamental.title url '<i data-toggle="tooltip" title="اشتراک در تلگرام" class="fab fa-telegram fa-lg "></i>' %}
+                        {% post_to_twitter  fundamental.title url '<i data-toggle="tooltip" title="اشتراک در توییتر" class="fab fa-twitter fa-lg mr-2"></i>' %}
+                        <a data-toggle="tooltip" title="فعال در موبایل ها" href="whatsapp://send?text=http://{{ request.get_host }}{{url}}  {{ fundamental.title }}" data-action="share/whatsapp/share">
+                            <i class="fab fa-whatsapp fa-lg mr-2"></i>
+                        </a>
+                    </div>
+
+                    {#                    <textarea class="form-control border-0 disabled text-muted" rows="5">#}
+{#                        {{ news.description }}#}
+{#                    </textarea>#}
+
+                </div>
+                <!--Grid column-->
+
+                <!--Grid column-->
+                <div class="col-lg-6 mb-4 mb-lg-0 d-flex align-items-center justify-content-center">
+
+                    {% if fundamental.pic %}
+                        {% if request.user.is_superuser or request.user|has_group:"level1" or request.user|has_group:"vip" %}
+                            <a href="{{ fundamental.pic.url }}" target="_target">
+                                <img src="{{ fundamental.pic.url }}" class="img-fluid" alt="" style="height: 400px; object-fit:contain">
+                            </a>
+                        {% else %}
+                            <img src="{% static 'bourseapp/images/fundamental-analysis.jpg' %}" class="img-fluid" alt="" style="width: 150px; height: 150px">
+                        {% endif %}
+                    {% else %}
+                        <img src="{% static 'bourseapp/images/fundamental-analysis.jpg' %}" class="img-fluid" alt="" style="width: 150px; height: 150px">
+                    {% endif %}
+
+                </div>
+                <!--Grid column-->
+
+            </div>
+            <!--Grid row-->
+
+            <hr>
+
+        </section>
+        <!--Section: Content-->
+
+        {% if request.user.is_superuser or request.user|has_group:"level1" or request.user|has_group:"vip" %}
+            <!--Section: Content-->
+            <section class="px-md-5 mx-md-5 dark-grey-text text-center text-lg-left">
+
+                <p class="text-muted text-right text-justify">{{ fundamental.description | safe }}</p>
+            </section>
+        {% endif %}
+
+        <hr>
+        <span class="float-right"><small>
+                تحلیلگر:
+            {% if fundamental.user.last_name %}
+                {{ fundamental.user.last_name }}
+            {% else %}
+                {{ fundamental.user }}
+            {% endif %}
+                            </small></span>
+
+        <span class="small text-black-50 mr-1 ml-1 float-left" > {{ fundamental.hit_count }} <i class="fa fa-eye" style="color: #c1c1c1"></i></span>
+
+    </div>
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+
+    <!-- selected category id -->
+{#    <input type="hidden" id="category-selected-id" selected-id="-1">#}
+
+
+{% endblock %}
+{% block javascript %}
+    <script>
+        // Tooltips Initialization
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+{% endblock %}

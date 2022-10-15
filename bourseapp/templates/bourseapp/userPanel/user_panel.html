@@ -1,0 +1,370 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load social_share %}
+{% load auth_extras %}
+{% block title %}
+    <title>تحلیل بازار {{ bazaar.company.symbol }}</title>
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+    <link rel="stylesheet" href="{% static 'bourseapp/css/Pages/user-panel.css' %}">
+
+    <!-- user info -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-8 col-lg-6 mx-auto">
+
+
+                <!-- Section: Block Content -->
+                <section>
+
+                    <!-- Card -->
+                    <div class="card testimonial-card">
+
+                        <!-- Background color -->
+                        <div class="card-up warning-color-dark p-3 white-text">
+                            <p class="small mb-0 float-left">{{ user.email }}</p>
+                            <p class="font-weight-normal mb-0">{{ user.first_name }} {{ user.last_name }}</p>
+                            <p class="small mb-0">{{ user }}</p>
+                        </div>
+
+                        <!-- Avatar -->
+                        <div class="avatar mx-auto white">
+                            <img src="{% static 'bourseapp/images/Blank-Placeholder.jpg' %}" class="rounded-circle" alt="woman avatar">
+                        </div>
+
+                        <!-- Content -->
+                        <div class="card-body px-3 py-4">
+                            <div class="row">
+                                {% if user|has_group:"level1" %}
+                                <div class="col-4 text-center">
+                                    <p class="font-weight-bold mb-0">{{ user_news_number }}</p>
+                                    <p class="small text-uppercase mb-0">تعداد اخبار</p>
+                                </div>
+                                <div class="col-4 text-center border-left border-right">
+                                    <p class="font-weight-bold mb-0">{{ user_analyze_number }}</p>
+                                    <p class="small text-uppercase mb-0">تعداد تحلیل ها</p>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <p class="font-weight-bold mb-0">{{ user_tutorial_number }}</p>
+                                    <p class="small text-uppercase mb-0">تعداد آموزش ها</p>
+                                </div>
+                                {% elif user.is_authenticated %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- Card -->
+
+                </section>
+                <!-- Section: Block Content -->
+
+
+            </div>
+        </div>
+    </div>
+
+
+    {% if request.user.is_superuser or request.user|has_group:"level1" %}
+        <!-- user portfolio and request -->
+        <div class="row">
+
+            <!-- user portfolio -->
+            <div class="col-md-6">
+                <div class="card mt-1 mb-3">
+                    <div class="card-header">
+                        سبد کاربران
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-xl-6">
+
+
+                                <div class=" scrollbar-ripe-malinka mb-2">
+
+                                    <!-- Search form -->
+                                    <form class="form-inline d-flex justify-content-center md-form form-sm mt-0">
+                                        <input class="form-control form-control-sm ml-3 w-75" type="text" placeholder="جست و جوی کاربر" aria-label="Search">
+                                        <i class="fas fa-search" aria-hidden="true"></i>
+                                    </form>
+                                    <div class="border p-1" style="position: relative; overflow-y: scroll; height: 400px;">
+                                        {% for userItm in portfolio_users %}
+                                            <a onclick="loadUserPortfolioSymbols('{{ userItm.user }}')">
+                                                <div class="media white z-depth-1 rounded mb-1" dir="ltr">
+                                                    <div class="media-body p-1">
+                                                        <p class="text-uppercase text-muted mb-1"><small>{{ userItm.user__username }}</small></p>
+                                                        <h7 class="font-weight-bold mb-0">{{ userItm.user__first_name }} {{ userItm.user__last_name }}</h7>
+                                                    </div>
+                                                    <i class="fa fa-user-alt green z-depth-1 p-3 rounded-right text-white" style="height: 54px; width: 54px"></i>
+                                                </div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div id="container-user-portfolio" class="col-xl-6 border p-2">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- user request -->
+            <div class="col-md-6">
+                <div class="card mt-1 mb-3">
+                    <div class="card-header">
+                        درخواست تحلیل کاربران
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-xl-6">
+
+
+                                <div class=" scrollbar-ripe-malinka mb-2">
+
+                                    <!-- Search form -->
+                                    <form class="form-inline d-flex justify-content-center md-form form-sm mt-0">
+                                        <input class="form-control form-control-sm ml-3 w-75" type="text" placeholder="جست و جوی کاربر" aria-label="Search">
+                                        <i class="fas fa-search" aria-hidden="true"></i>
+                                    </form>
+                                    <div class="border" style="position: relative; overflow-y: scroll; height: 400px;">
+                                        {% for userItm in req_users %}
+                                            <a onclick="loadUserRequestedSymbols('{{ userItm.user }}')">
+                                                <div class="media white z-depth-1 rounded mb-1" dir="ltr">
+                                                    <div class="media-body p-1">
+                                                        <p class="text-uppercase text-muted mb-1"><small>{{ userItm.user__username }}</small></p>
+                                                        <h7 class="font-weight-bold mb-0">{{ userItm.user__first_name }} {{ userItm.user__last_name }}</h7>
+                                                    </div>
+                                                    <i class="fa fa-user-alt green z-depth-1 p-3 rounded-right text-white" style="height: 54px; width: 54px"></i>
+                                                </div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div id="container-user-requests" class="col-xl-6 border">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row d-flex  justify-content-center">
+
+        <!-- portfolio list -->
+        {% if user|has_group:"portfolio" %}
+            <div class="col-xl-4 col-md-6">
+                <div class="card mb-1">
+
+                    <div class="card-header d-flex justify-content-center">
+                        <i class="fa fa-shopping-basket ml-1 mt-1 text-black-50"></i>
+                        سبد من
+                    </div>
+
+                    <div class="card-body">
+                        <!--target tiles-->
+                        <div class=" mb-1" id="container-symbol-portfolio-list">
+                        </div>
+                    </div>
+
+                    <div class="card-footer d-flex justify-content-center">
+                        <a onclick="clearModal(true)" data-toggle="modal" data-target="#centralModalSm">افزودن نماد</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- requsted symbol to analyze -->
+        <div class="col-xl-4 col-md-6">
+            <div class="card mb-1">
+
+                <div class="card-header d-flex justify-content-center">
+                    <i class="fa fa-seedling ml-1 mt-1 text-black-50"></i>
+                    نمادهای درخواستی برای تحلیل
+                </div>
+
+                <div class="card-body">
+                    <!--target tiles-->
+                    <div class=" mb-1" id="container-symbol-req-list">
+                    </div>
+
+                </div>
+
+                <div class="card-footer d-flex justify-content-center">
+                    <a onclick="clearModal(false)" data-toggle="modal" data-target="#centralModalSm">افزودن نماد</a>
+                </div>
+            </div>
+        </div>
+
+
+{#        {% if user|has_group:"level1" %}#}
+        <!-- reqs -->
+        <div class="col-xl-4 col-md-6">
+
+            <!-- user profilio -->
+            <div class="card scrollbar-ripe-malinka mb-2">
+                <div class="card-header">
+                    نمادهای درخواستی کاربران برای تحلیل
+                </div>
+                <div class="card-body" style="position: relative; overflow-y: scroll; height: 400px;">
+                    {% for target in req_analyze %}
+                        <!--target tiles-->
+                        {#                            <p>1223</p>#}
+                        <div class=" mb-1">
+                            <a href="{% url 'bourseapp:company-detail' target.company%}">
+
+                                <div class="media white z-depth-0 border rounded">
+                                    {% if target.company__pic %}
+                                        <img src="{{ target.company__pic.url }}" alt="" class="rounded-right z-depth-1" style="height: 53px; width: 53px; object-fit: contain">
+                                    {% else %}
+                                        <i class="fas fa-chart-bar fa-lg blue z-depth-1 p-3 rounded-right text-white"  style="height: 53px; width: 53px;"></i>
+                                    {% endif %}
+                                    <div class="media-body p-1">
+                                        <p class="text-uppercase text-muted mb-1"><small>{{ target.createAt|to_jalali:'%y/%m/%d' }}</small></p>
+                                        <h7 class="font-weight-bold mb-0 small">
+                                            {{ target.company__symbol }}
+                                            {% if user.is_superuser%}
+                                                <a class="small" href="{% url 'admin:bourseapp_company_change' target.company %}" target="_blank"><i class="fa fa-edit text-black-50"></i></a>
+                                            {% endif %}
+                                            <span class="small mr-1 ml-1 float-left" style="color: #c1c1c1" > تعداد درخواست: {{ target.num_symbol }}</span>
+                                        </h7>
+
+                                    </div>
+
+                                </div>
+
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- profilio stocks -->
+            <div class="card scrollbar-ripe-malinka mb-2">
+                <div class="card-header">
+                    نمادهای موجود در سبدها کاربران
+                </div>
+                <div class="card-body" style="position: relative; overflow-y: scroll; height: 400px;">
+                    {% for target in portfolio_symbols %}
+                        <!--target tiles-->
+                        {#                            <p>1223</p>#}
+                        <div class=" mb-1">
+                            <a href="{% url 'bourseapp:company-detail' target.company%}">
+
+                                <div class="media white z-depth-0 border rounded">
+                                    {% if target.company__pic %}
+                                        <img src="{{ target.company__pic.url }}" alt="" class="rounded-right z-depth-1" style="height: 53px; width: 53px; object-fit: contain">
+                                    {% else %}
+                                        <i class="fas fa-chart-bar fa-lg blue z-depth-1 p-3 rounded-right text-white"  style="height: 53px; width: 53px;"></i>
+                                    {% endif %}
+                                    <div class="media-body p-1">
+                                        <p class="text-uppercase text-muted mb-1"><small>{{ target.createAt|to_jalali:'%y/%m/%d' }}</small></p>
+                                        <h7 class="font-weight-bold mb-0 small">
+                                            {{ target.company__symbol }}
+                                            {% if user.is_superuser%}
+                                                <a class="small" href="{% url 'admin:bourseapp_company_change' target.company %}" target="_blank"><i class="fa fa-edit text-black-50"></i></a>
+                                            {% endif %}
+                                            <span class="small mr-1 ml-1 float-left" style="color: #c1c1c1" > تعداد افراد: {{ target.num_symbol }}</span>
+                                        </h7>
+
+                                    </div>
+
+                                </div>
+
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+{#        {% endif %}#}
+    </div>
+
+    <!-- Central Modal Small -->
+    <div class="modal fade" id="centralModalSm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+
+        <!-- Change class .modal-sm to change the size of the modal -->
+        <div class="modal-dialog modal-lg" role="document">
+
+            <div class="modal-content">
+                <!-- Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title w-100" id="myModalLabel">افزودن نماد</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <!-- Body -->
+                <div class="modal-body">
+
+                    <!-- selected symbols -->
+                    <div class="card mb-1">
+                        <div class="card-header bg-primary">
+                            <span style="color: white">نمادهای انتخاب شده</span>
+                        </div>
+                        <ul id="container-selected-symbols-tag" class="card-body">
+                        </ul>
+                    </div>
+
+                    <!-- search symbols -->
+                    <div class="card scrollbar-ripe-malinka">
+                        <div class="card-header">
+                            <!-- Search form -->
+                            <form class="form-inline d-flex justify-content-center md-form form-sm mt-0">
+                                <input id="search-user-add-symbol" class="form-control form-control-sm ml-3 w-75" type="text" placeholder="جست و جوی نماد" aria-label="Search">
+                                <i class="fas fa-search" aria-hidden="true"></i>
+                            </form>
+                        </div>
+                        <ul class="card-body" id="container-user-pannel-symbols" style="position: relative; overflow-y: scroll; height: 200px;">
+                        </ul>
+                    </div>
+
+                </div>
+                <!-- Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">لغو</button>
+                    <button onclick="modalApproveButton()" type="button" class="btn btn-primary btn-sm">تایید</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Central Modal Small -->
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+    <input type="hidden" id="url-symbol-list" data-url="{% url 'api-bourseapp:symbols-view'%}" />
+    <input type="hidden" id="url-symbol-req-add" data-url="{% url 'api-bourseapp:add-symbol-analyze'%}" />
+    <input type="hidden" id="url-symbol-portfolio-add" data-url="{% url 'api-bourseapp:add-symbol-portfolio'%}" />
+    <input type="hidden" id="url-symbol-req-list" data-url="{% url 'api-bourseapp:list-symbol-analyze'%}" />
+    <input type="hidden" id="url-symbol-portfolio-list" data-url="{% url 'api-bourseapp:list-symbol-portfolio'%}" />
+    <input type="hidden" id="static-url-company-placeholder" data-url="{% static 'bourseapp/images/company_placeholder.png'%}" />
+    <input type="hidden" id="url-symbol-detail" data-url="{% url 'bourseapp:company-detail' 1234%}" />
+
+
+{% endblock %}
+
+{% block javascript %}
+    <script>
+        var csrftoken = '{{ csrf_token }}';
+        var user_id = '{{ user.id }}';
+    </script>
+    <script type="text/javascript" src="{% static 'bourseapp/js/pages/user_panel.js' %}"></script>
+
+{% endblock %}

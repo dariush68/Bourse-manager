@@ -1,0 +1,1 @@
+from Bourse.wsgi import application

@@ -1,0 +1,142 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load humanize %}
+{% load auth_extras %}
+{% block title %}
+    <title>پیام ها</title>
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+    <!-- Material Design Bootstrap table -->
+{#    <link rel="stylesheet" href="{% static 'bourseapp/css/Pages/messanger.css' %}">#}
+
+    <p class="text-white mb-0">.</p>
+    <div class="container" dir="ltr">
+
+        <div class="card grey lighten-3 chat-room mb-3">
+            <div class="card-body">
+
+                <!-- Grid row -->
+                <div class="row px-lg-2 px-2">
+
+                    <!-- messege -->
+                    <div class="col-md-6 col-xl-8 pl-md-3 px-lg-auto px-0">
+
+                        <div class="chat-message mr-3">
+
+                            <ul id="container-message-members" class="list-unstyled chat border" style="width: 100%; height: 300px; overflow: auto"></ul>
+                            <div class="form-group basic-textarea"  style="position: relative; bottom: 0;">
+                                <textarea id="txt-messageBox" dir="rtl" class="form-control pl-2 my-0" id="exampleFormControlTextarea2" rows="3" placeholder="متن خود را در این قسمت وارد کنید ..."></textarea>
+                            </div>
+                            {% if request.user|has_group:"level1" or user.is_superuser %}
+                                <button type="button" onclick="sendMessage(true)" class="btn btn-info btn-rounded btn-sm waves-effect waves-light float-right">ارسال <i class="fa fa-paper-plane ml-1"></i></button>
+                            {% else %}
+                                <button type="button" onclick="sendMessage()" class="btn btn-info btn-rounded btn-sm waves-effect waves-light float-right">ارسال <i class="fa fa-paper-plane ml-1"></i></button>
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                    <!-- members -->
+                    <div class="col-md-6 col-xl-4 px-0 border">
+
+                        {% if request.user|has_group:"level1" or user.is_superuser %}
+                            <div class="white px-3 pt-3 pb-1 rounded mb-2" dir="rtl">
+                                <p>تعداد پیام های خوانده نشده: <strong>{{ unReadMsgCount }}</strong></p>
+                            </div>
+                        {% endif %}
+
+                        <div class="white px-3 pt-3 pb-1 rounded" dir="rtl">
+                        <!-- Search form -->
+                            <form class="form-inline">
+                                <i class="fas fa-search ml-2" aria-hidden="true"></i>
+
+                                {% if request.user|has_group:"level1" or user.is_superuser %}
+                                    <input id="search-member" class="form-control form-control-sm ml-3" type="text" placeholder="جست وجو" aria-label="Search" style="width: 90%">
+                                {% else %}
+                                    <input class="form-control form-control-sm ml-3" type="text" placeholder="جست وجو" aria-label="Search" style="width: 90%">
+                                {% endif %}
+                            </form>
+                            <hr>
+                            <ul class="list-unstyled friend-list">
+                                <!-- admin -->
+                                <li  id="admin-member" value="{{ admin_user.id }}" data-page="1" class="myclass-member-tile active grey lighten-3 p-1 border-bottom" style="margin-right: -30px">
+                                    <a class="d-flex justify-content-between" onclick="selectMember('admin-member', false, true)">
+                                        <img src="{% static 'bourseapp/images/admin_placeholder.jfif' %}" alt="avatar" class="avatar rounded-circle d-flex align-self-center img-thumbnail"
+                                             style="object-fit: contain; width: 60px; height: 60px; ">
+                                        <div class="text-small text-right mr-1">
+                                            <small dir="ltr">@admin</small>
+                                            <p class="last-message text-muted mb-0">ارتباط با ادمین ها</p>
+                                        </div>
+                                        <div class="text-small text-right" >
+                                            <p class="text-smaller text-muted mb-0">Just now</p>
+                                            <span class="badge badge-danger float-left d-none">1</span>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                            <!-- members -->
+                            <ul id="container-member-list" class="list-unstyled friend-list"></ul>
+
+                            <!-- admin message members -->
+                            {% if request.user|has_group:"level1" or user.is_superuser %}
+                                <ul class="list-unstyled friend-list">
+                                    {% for member in member_msg2admin %}
+                                        <li  id="member-msg2admin-{{ member.account.id }}" value="{{ member.account.id }}" data-page="1" class="myclass-member-tile active grey lighten-3 p-1 border-bottom" style="margin-right: -30px">
+                                            <a class="d-flex justify-content-between" onclick="selectMember('member-msg2admin-{{ member.account.id }}', true, true)">
+                                                <img src="{% static 'bourseapp/images/Blank-Placeholder.jpg' %}" alt="avatar" class="avatar rounded-circle d-flex align-self-center img-thumbnail"
+                                                     style="object-fit: contain; width: 60px; height: 60px; ">
+                                                <div class="text-small text-right mr-1">
+                                                    <small dir="ltr">@{{ member.account.username }}</small>
+                                                    <p class="last-message text-muted mb-0">{{ member.account.first_name }} {{ member.account.last_name }}</p>
+                                                </div>
+                                                <div class="text-small text-right" >
+{#                                                    <p dir="ltr" class="text-smaller text-muted mb-0 small">{{ member.account.last_login|to_jalali:'%y/%m/%d %H:%M:%S' }}</p>#}
+                                                    <p dir="ltr" class="text-smaller text-muted mb-0 small">{{ member.account.last_login|naturaltime }}</p>
+                                                    {% if member.unReadMsg > 0 %}
+                                                    <span id="member-unReadMsgCount-{{ member.account.id }}" class="badge badge-danger float-left">{{ member.unReadMsg }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                </div>
+                <!-- Grid row -->
+
+            </div>
+        </div>
+
+
+    </div>
+{#    <div class="form-group basic-textarea" style="position: fixed; bottom: 0; width: 100%">#}
+{#        <textarea class="form-control pl-2 my-0" id="exampleFormControlTextarea2" rows="3" placeholder="Type your message here..."></textarea>#}
+{#    </div>#}
+
+    <img id="img-member-placeholder" class="d-none" src="{% static 'bourseapp/images/Blank-Placeholder.jpg' %}" >
+    <img id="img-admins-placeholder" class="d-none" src="{% static 'bourseapp/images/admin_placeholder.jfif' %}" >
+    <input type="hidden" id="url-member-list" data-url="{% url 'api-bourseapp:user-list'%}" />
+    <input type="hidden" id="url-message-create" data-url="{% url 'api-bourseapp:post-listcreate-chatMessage'%}" />
+    <input type="hidden" id="url-message-delete" data-url="{% url 'api-bourseapp:post-rud-chatMessage' 1234%}" />
+
+{% endblock %}
+
+
+{% block javascript %}
+
+    <script>
+        var csrftoken = '{{ csrf_token }}';
+        var user_id = '{{ user.id }}';
+    </script>
+    <script src="{% static 'bourseapp/js/pages/messanger.js' %}"></script>
+{% endblock %}

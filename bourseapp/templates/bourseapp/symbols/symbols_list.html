@@ -1,0 +1,380 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load auth_extras %}
+{% block title %}
+    <title>گروه های بورسیا</title>
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables.min.css' %}"><!-- MDBootstrap Datatables  -->
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables-select.min.css' %}"><!-- MDBootstrap Datatables  -->
+
+    <div class="container-fluid">
+
+        <!-- Heading -->
+        <div class="card mb-2 wow fadeIn">
+
+            <!--Card content-->
+            <div class="card-body d-sm-flex justify-content-between">
+                نمادهای بورسی
+            </div>
+
+        </div>
+
+        <!-- body -->
+        <div class=" row wow fadeIn">
+
+            <!--right section-->
+            <div class="col-md-3 mb-4">
+
+                <!-- category -->
+                <div class="card mb-4">
+
+                    <!-- Card header -->
+                    <div class="card-header text-center">
+                        گروه ها
+                    </div>
+
+                    <!--Card content-->
+                    <div class="card-body">
+
+                        <!-- List group links -->
+                        <div class="list-group list-group-flush">
+
+                            <!-- new/delete/edit buttons -->
+                            {% if request.user.is_superuser %}
+                                <div class="text-center">
+                                    <a href="{% url 'admin:bourseapp_category_add' %}?user={{ user.id }}" class="btn btn-rounded btn-info btn-sm d-block" ><i class="fas fa-plus-circle mr-1"></i> افزودن</a>
+                                    <a id="category-edit" href="{% url 'admin:bourseapp_category_change'  1%}?next={{ request.path|urlencode }}"  class="btn btn-rounded btn-info btn-sm d-none"><i class="fas fa-edit mr-1"></i> ویرایش</a>
+                                    <a id="category-delete" href="{% url 'admin:bourseapp_category_delete' 1%}?next={{ request.path|urlencode }}"  class="btn btn-rounded btn-danger btn-sm d-none"><i class="fas fa-trash mr-1"></i> حذف</a>
+                                </div>
+                            {% endif %}
+
+                            <!-- PAGE search -->
+                            <div class="container">
+                                <div class="row">
+                                    <!-- Search form -->
+                                    <div class="active-cyan-4 col-12 mx-1 mb-1">
+                                        <input id="search-category" class="form-control" type="text" placeholder="جست و جو" aria-label="Search" value="{{ search_category }}">
+                                        <a id="category-search-link"></a>
+                                    </div>
+                                </div>
+                                <div class="clearfix"></div>
+                            </div>
+
+                            <!-- body -->
+                            <div class="container">
+
+                                <div class="table-responsive" id="category-list">
+
+                                    <table class="table table-sm table-hover table-striped"  id="category-table">
+                                        <thead class="thead-dark">
+                                        <tr>
+                                            <th class="text-center" scope="col">گروه</th>
+                                            <th class="d-none" scope="col">تاریخ</th>
+                                            <th class="d-none" scope="col">توضیحات</th>
+                                            <th class="d-none" scope="col">تصویر</th>
+                                            {% if request.user.is_superuser %}
+                                                <th class="" scope="col"></th>
+                                                <th class="" scope="col"></th>
+                                            {% endif %}
+                                        </tr>
+                                        </thead>
+                                        <tbody id="list-category">
+
+                                        <tr>
+                                            <input class="categoryId" type="hidden" dataId="-1">
+                                            <td class="category-symbol" >
+                                                همه گروها
+                                            </td>
+                                            {% if request.user.is_superuser %}
+                                                <td></td>
+                                                <td></td>
+                                            {% endif %}
+                                        </tr>
+                                        {% for category in categories %}
+                                            <tr>
+                                                <input class="categoryId" type="hidden" dataId={{ category.id }}>
+                                                <td class="category-symbol" >
+                                                    <a href="{% url 'bourseapp:category-detail' category.id%}"><i class="fa fa-external-link-alt"></i></a>
+                                                    {{ category.title }}
+                                                </td>
+                                                <td class="createAt d-none" style="font-family: 'IRANSansNum';">{{ category.createAt|to_jalali:'%y/%m/%d' }}</td>
+                                                <td class="description d-none">{{ category.description }}</td>
+                                                {% if category.pic %}
+                                                    <td class="d-none" ><a href="{{ category.pic.url }}"><i class="fa fa-image"></i></a></td>
+                                                {% else %}
+                                                    <td class="d-none" ><a href="#"></a></td>
+
+                                                {% endif %}
+                                                {% if request.user.is_superuser %}
+                                                    <td>
+                                                        <a href="{% url 'admin:bourseapp_category_change' category.id %}"><i class="fa fa-edit" style="color: #0d5bdd"></i></a>
+                                                    </td>
+                                                    <td>
+                                                        <a href="{% url 'admin:bourseapp_category_delete' category.id %}"><i class="fa fa-trash" style="color: #9f105c"></i></a>
+                                                    </td>
+                                                {% endif %}
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <!-- List group links -->
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- left section -->
+            <div class="col-md-9 mb-4">
+
+
+                <div class="card mb-4">
+
+                    <!-- Card header -->
+                    <div class="card-header text-center">
+                        نماد ها
+                    </div>
+
+                    <!--Card content-->
+                    <div class="card-body">
+
+                        <!-- List group links -->
+                        <div class="list-group list-group-flush">
+
+                            <!-- new/delete/edit buttons -->
+                            {% if request.user.is_superuser or request.user|has_group:"level1" %}
+                                <div class="text-center">
+                                    <a href="{% url 'admin:bourseapp_company_add' %}?category={{ request.GET.category_id }}&user={{ user.id }}" class="btn btn-rounded btn-info btn-sm" ><i class="fas fa-plus-circle mr-1"></i> افزودن</a>
+                                    <a id="company-edit" href="{% url 'admin:bourseapp_company_change'  1%}?next={{ request.path|urlencode }}"  class="btn btn-rounded btn-info btn-sm"><i class="fas fa-edit mr-1"></i> ویرایش</a>
+                                    <a id="company-delete" href="{% url 'admin:bourseapp_company_delete' 1%}?next={{ request.path|urlencode }}"  class="btn btn-rounded btn-danger btn-sm"><i class="fas fa-trash mr-1"></i> حذف</a>
+                                </div>
+                            {% endif %}
+
+                            <!-- PAGE SIZE/ search -->
+                            <div class="container">
+                                <div class="row">
+
+                                    <div class="col-6">
+                                        <!-- Search form -->
+                                        <label>جست و جو</label>
+                                        <div class="active-cyan-4">
+                                            <input id="search-company" class="form-control" type="text" placeholder="جست و جو" aria-label="Search" value="{{ search }}">
+                                            <a id="search-company-link"></a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="clearfix"></div>
+                            </div>
+
+                            <!-- body -->
+                            <div class="">
+                                <div class="container py-1">
+
+                                    <div class="row pagination-sm table-responsive" id="category-list">
+
+                                        <table class="table table-sm table-hover table-striped"  id="company-table">
+                                            <thead class="thead-dark">
+                                            <tr>
+                                                <th scope="col">#</th>
+                                                <th scope="col">نماد</th>
+                                                <th scope="col">شرکت</th>
+                                                <th class="d-none" scope="col">گروه</th>
+                                                <th scope="col">بورس</th>
+                                                <th class="d-none" scope="col">تاریخ</th>
+                                                <th class="d-none" scope="col">توضیحات</th>
+                                                <th scope="col">tse</th>
+                                                <th scope="col">وبسایت</th>
+                                                <th scope="col"><i class="fas fa-eye"></i></th>
+                                                <th class="d-none" scope="col">تصویر</th>
+                                                {% if request.user.is_superuser %}
+                                                    <th class="" scope="col"></th>
+                                                    <th class="" scope="col"></th>
+                                                {% endif %}
+                                            </tr>
+                                            </thead>
+                                            <tbody id="list-company">
+                                            {% for company in companies %}
+                                                <tr>
+                                                    <input class="companyId" type="hidden" dataId={{ company.id }}>
+                                                    <th scope="row" >{{ forloop.counter }}</th>
+                                                    <td class="company-symbol" >
+                                                        <a href="{% url 'bourseapp:company-detail' company.id%}"><i class="fa fa-external-link-alt"></i></a>
+                                                        {{ company.symbol }}
+                                                    </td>
+                                                    <td class="" >{{ company.fullName }}</td>
+                                                    <td class="d-none" >{{ company.category.title }}</td>
+                                                    <td class="" >{{ company.bourseType }}</td>
+                                                    <td class="d-none" style="font-family: 'IRANSansNum';">{{ company.createAt|to_jalali:'%y/%m/%d' }}</td>
+                                                    <td class="d-none">{{ company.description }}</td>
+                                                    <td class=""><a href="{{ company.tse }}" target="_blank">tse</a></td>
+                                                    <td class=""><a href="{{ company.site }}" target="_blank"><i class="fa fa-link"></i></a></td>
+                                                    <td class="">
+                                                        {% if company.isTarget %}
+                                                            <i class="fa fa-star" style="color: #ffc400"></i>
+                                                        {% endif %}
+                                                    </td>
+                                                    {% if company.pic %}
+                                                        <td class="d-none" ><a href="{{ company.pic.url }}"><i class="fa fa-image"></i></a></td>
+                                                    {% else %}
+                                                        <td class="d-none" ><a href="#"></a></td>
+
+                                                    {% endif %}
+                                                    {% if request.user.is_superuser %}
+                                                        <td>
+                                                            <a href="{% url 'admin:bourseapp_company_change' company.id %}" target="_blank"><i class="fa fa-edit" style="color: #0d5bdd"></i></a>
+                                                        </td>
+                                                        <td>
+                                                            <a href="{% url 'admin:bourseapp_company_delete' company.id %}" target="_blank"><i class="fa fa-trash" style="color: #9f105c"></i></a>
+                                                        </td>
+                                                    {% endif %}
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <!-- List group links -->
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+    <input type="hidden" id="url-symbol" data-url="{% url 'api-bourseapp:symbols-view' %}" />
+
+    <input type="hidden" id="symbol-page-is-superuser" data-state="{{ request.user.is_superuser }}">
+
+    <!-- selected category id -->
+{#    <input type="hidden" id="category-selected-id" selected-id="-1">#}
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/jquery.min.js' %}"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/mdb.min.js' %}"></script>
+    <!-- MDB table core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/addons/datatables.min.js' %}"></script><!-- MDBootstrap Datatables  -->
+    <!-- MDB table core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/addons/datatables-select.min.js' %}"></script><!-- MDBootstrap Datatables  -->
+
+    <script>
+
+        //-- search company --//
+           /*$("#search-company").on('input', function () {
+            let searchInput = $("#search-company").val();
+
+            $("#list-company tr td").filter(".company-symbol").each(function( index ) {
+                if ($( this ).text().indexOf(searchInput) === -1){
+                    $( this ).parent().addClass('d-none');
+                }
+                else {
+                    $( this ).parent().removeClass('d-none');
+                }
+            });
+        });
+
+        //-- search category --//
+        $("#search-category").on('input', function () {
+            let searchInput = $("#search-category").val();
+
+            $("#list-category tr td").filter(".category-symbol").each(function( index ) {
+                if ($( this ).text().indexOf(searchInput) === -1){
+                    $( this ).parent().addClass('d-none');
+                }
+                else {
+                    $( this ).parent().removeClass('d-none');
+                }
+            });
+        })*/
+
+
+    </script>
+
+    <!-- search category -->
+    <script>
+
+        //-- category table click --//
+        $("#category-table tr").click(function(){
+            $(this).addClass('table-primary').siblings().removeClass('table-primary');
+            var value=$(this).find('input.categoryId').attr("dataId");
+
+            loadSymbols(value);
+
+        });
+
+        //-- company table click --//
+        $("#company-table tr").click(function(){
+            $(this).addClass('table-primary').siblings().removeClass('table-primary');
+            var value=$(this).find('input.companyId').attr("dataId");
+
+            alert(value)
+
+            var url_mask_edit = "{% url 'admin:bourseapp_company_change' 12345 %}".replace(/12345/, value.toString());
+            $("#company-edit").attr("href", url_mask_edit);
+
+            var url_mask_delete = "{% url 'admin:bourseapp_company_delete' 12345 %}".replace(/12345/, value.toString());
+            $("#company-delete").attr("href", url_mask_delete);
+
+        });
+
+        $('.ok').on('click', function(e){
+            alert($("#category-table tr.selected td:first").html());
+        });
+
+        // Material Select Initialization
+        $(document).ready(function() {
+            $('.mdb-select').materialSelect();
+            $('.select-wrapper.md-form.md-outline input.select-dropdown').bind('focus blur', function () {
+                $(this).closest('.select-outline').find('label').toggleClass('active');
+                $(this).closest('.select-outline').find('.caret').toggleClass('active');
+            });
+        });
+
+
+
+    </script>
+
+    <!-- search category -->
+    <script>
+        $("#search-category").on('keyup', function (e) {
+            if (e.keyCode === 13) {
+                let srchterm = $("#search-category").val();
+                let tag_a = document.getElementById("category-search-link");
+                tag_a.href = "?search-category=" + srchterm;
+                tag_a.click();
+            }
+        });
+    </script>
+
+    <script src="{% static 'bourseapp/js/symbol_list.js' %}"></script>
+
+
+{% endblock %}

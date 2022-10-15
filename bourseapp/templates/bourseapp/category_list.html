@@ -1,0 +1,219 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% block title %}
+    <title>گروه های بورسیا</title>
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables.min.css' %}"><!-- MDBootstrap Datatables  -->
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables-select.min.css' %}"><!-- MDBootstrap Datatables  -->
+
+    <div class="alert alert-primary" role="alert">
+        گروه ها
+    </div>
+
+    <!-- new/delete/edit buttons -->
+    <div class="text-center">
+      <a href="{% url 'admin:bourseapp_category_add' %}?user={{ user.id }}" class="btn btn-rounded btn-info btn-sm" ><i class="fas fa-plus-circle mr-1"></i> افزودن</a>
+      <a id="category-edit" href="{% url 'admin:bourseapp_category_change'  1%}?next={{ request.path|urlencode }}"  class="btn btn-rounded btn-info btn-sm"><i class="fas fa-edit mr-1"></i> ویرایش</a>
+      <a id="category-delete" href="{% url 'admin:bourseapp_category_delete' 1%}?next={{ request.path|urlencode }}"  class="btn btn-rounded btn-danger btn-sm"><i class="fas fa-trash mr-1"></i> حذف</a>
+    </div>
+
+
+    <!-- PAGE SIZE/ search -->
+    <div class="container">
+        <div class="row">
+            <div class="col-6 select-outline">
+
+                <label>تعداد صفحات</label>
+                <select id="category-selector-page-size"  class="browser-default custom-select"  onchange="categoryPageSizeChanged(this.options[this.selectedIndex].value)">
+                    <option value="10">10</option>
+                    <option value="20" >20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <a id="category-tag-a-page-size" class="d-none" href="?page-size=10">10</a>
+                <script>
+                    document.getElementById('category-selector-page-size').value={{ page_size }};
+                    function categoryPageSizeChanged(page_size) {
+                        {#alert(page_size)#}
+                        let tag_a = document.getElementById("category-tag-a-page-size");
+                        let srchterm = $("#search-category").val();
+                        tag_a.href = "?page-size=" + page_size + "&search=" + srchterm;
+                        tag_a.click();
+                    }
+                </script>
+
+            </div>
+            <div class="col-6">
+                {#                <input id="search-category"  style="width: 50%; margin: 0 auto; text-align: center" class="form-control float-left" type="text" placeholder="جست و جو" aria-label="Search" value="{{ search }}">#}
+                <!-- Search form -->
+                <label>جست و جو</label>
+                <div class="active-cyan-4">
+                    <input id="search-category" class="form-control" type="text" placeholder="جست و جو" aria-label="Search" value="{{ search }}">
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+
+    <!-- body -->
+    <div class="">
+        <div class="container py-1">
+
+            <div class="row pagination-sm table-responsive" id="category-list">
+
+                <table class="table table-sm table-hover table-striped"  id="category-table">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">عنوان</th>
+                        <th scope="col">تاریخ</th>
+                        <th scope="col">توضیحات</th>
+                        <th scope="col">تصویر</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for category in categories %}
+                        <tr>
+                            <input class="categoryId" type="hidden" dataId={{ category.id }}>
+                            <th scope="row" >{{ forloop.counter }}</th>
+                            <td class="title" ><a href="{% url 'bourseapp:category-detail' category.id%}">{{ category.title }}</a></td>
+                            <td class="createAt" style="font-family: 'IRANSansNum';">{{ category.createAt|to_jalali:'%y/%m/%d' }}</td>
+                            <td class="description">{{ category.description }}</td>
+                            {% if category.pic %}
+                                <td ><a href="{{ category.pic.url }}"><i class="fa fa-image"></i></a></td>
+                            {% else %}
+                                <td ><a href="#"></a></td>
+
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- pagination -->
+    <div class="d-flex justify-content-center">
+        {% if categories.has_other_pages %}
+            <nav aria-label="Page navigation example">
+                <ul class="pagination pagination-circle pg-blue">
+                    <li class="page-item"><a class="page-link"  href="?page=1&page-size={{ page_size }}" onclick="this.href += '&search=' + document.getElementById('search-category').value">First</a></li>
+                    {% if salaries.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" aria-label="Previous" href="?page={{ categories.previous_page_number }}&page-size={{ page_size }}" onclick="this.href += '&search=' + document.getElementById('search-category').value">
+                                <span aria-hidden="true">&laquo;</span>
+                                <span class="sr-only">Previous</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                        <a class="page-link" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                            <span class="sr-only">Previous</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <!-- center page numbers -->
+                    {% for i in categories.paginator.page_range %}
+                        {% if categories.number == i %}
+                            <li class="page-item active"><a class="page-link">{{ i }}</a></li>
+
+                        {% else %}
+                            <li class="page-item"><a class="page-link"  href="?page={{ i }}&page-size={{ page_size }}" onclick="this.href += '&search=' + document.getElementById('search-category').value">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- center page numbers -->
+                    {% if categories.has_next %}
+                        <a class="page-link" aria-label="Next"  href="?page={{ categories.next_page_number }}&page-size={{ page_size }}" onclick="this.href += '&search=' + document.getElementById('search-category').value">
+                            <span aria-hidden="true">&raquo;</span>
+                            <span class="sr-only">Next</span>
+                        </a>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                                <span class="sr-only">Next</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item"><a class="page-link">Last</a></li>
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+
+    <!-- selected category id -->
+{#    <input type="hidden" id="category-selected-id" selected-id="-1">#}
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/jquery.min.js' %}"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/mdb.min.js' %}"></script>
+    <!-- MDB table core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/addons/datatables.min.js' %}"></script><!-- MDBootstrap Datatables  -->
+    <!-- MDB table core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/addons/datatables-select.min.js' %}"></script><!-- MDBootstrap Datatables  -->
+
+    <script>
+
+        $("#category-table tr").click(function(){
+           $(this).addClass('table-primary').siblings().removeClass('table-primary');
+           var value=$(this).find('input.categoryId').attr("dataId");
+
+           var url_mask_edit = "{% url 'admin:bourseapp_category_change' 12345 %}".replace(/12345/, value.toString());
+           $("#category-edit").attr("href", url_mask_edit)
+
+           var url_mask_delete = "{% url 'admin:bourseapp_category_delete' 12345 %}".replace(/12345/, value.toString());
+           $("#category-delete").attr("href", url_mask_delete)
+
+           {#alert(value)#}
+                   });
+
+        $('.ok').on('click', function(e){
+            alert($("#category-table tr.selected td:first").html());
+        });
+
+        // Material Select Initialization
+        $(document).ready(function() {
+            $('.mdb-select').materialSelect();
+            $('.select-wrapper.md-form.md-outline input.select-dropdown').bind('focus blur', function () {
+                $(this).closest('.select-outline').find('label').toggleClass('active');
+                $(this).closest('.select-outline').find('.caret').toggleClass('active');
+            });
+        });
+
+
+
+    </script>
+
+    <!-- search -->
+    <script>
+        $("#search-category").on('keyup', function (e) {
+            if (e.keyCode === 13) {
+                let srchterm = $("#search-category").val();
+                let tag_a = document.getElementById("category-tag-a-page-size");
+                tag_a.href = "?page-size=" + {{ page_size }} + "&search=" + srchterm;
+                tag_a.click();
+            }
+        });
+    </script>
+{% endblock %}

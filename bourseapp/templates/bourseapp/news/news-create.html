@@ -1,0 +1,77 @@
+{% extends 'bourseapp/base.html' %}
+{% load crispy_forms_tags %}
+{% load jalali_tags %}
+
+{% block body %}
+
+    {% load  staticfiles %}
+
+    <!-- Main navigation -->
+    <div class="container-fluid">
+
+        <!-- Full Page Intro -->
+        <section>
+                <!-- Content -->
+                <div class="container py-5 my-5">
+
+                    <h3 class="font-weight-bold text-center pb-2">فرم خبر</h3>
+                    <p class="lead text-center white-text pt-2 mb-5"></p>
+
+
+                    <!--Grid row-->
+                    <div class="row d-flex align-items-center justify-content-center">
+                        <!--Form-->
+                        <div class="card">
+                            <div class="card-body z-depth-2 px-4">
+
+                                <form method="post" id="formCreateNews" onsubmit="return validateNewsForm()">
+                                    {% csrf_token %}
+                                    {{ form|crispy }}
+                                    <input type="hidden" name="category" value="{{ category }}">
+                                    <input type="hidden" name="company" value="{{ company }}">
+                                    <button class="btn btn-info" type="submit">ثبت</button>
+                                </form>
+                            </div>
+                        </div>
+                        <!--/.Form-->
+                    </div>
+                    <!--Grid row-->
+
+                </div>
+                <!-- Content -->
+        </section>
+        <!-- Full Page Intro -->
+
+    </div>
+    <!-- Main navigation -->
+
+<script>
+
+    //-- validate form --//
+    function validateNewsForm(){
+        {#let pic = document.forms["FormIncome"]["income-modal-new-upload-img"].value;#}
+
+alert("ss")
+        alert({{ form.title }})
+        console.log({{ form.title }});
+
+        return false
+    }
+</script>
+
+
+{% endblock %}
+
+{% block javascript %}
+
+    <!-- By default, Datepicker using jQuery, you need to set your script after loading jQuery! -->
+    <!-- loading directly -->
+    <link rel="stylesheet" href="{% static 'admin/jquery.ui.datepicker.jalali/themes/base/jquery-ui.min.css' %}">
+    <script src="{% static 'admin/js/django_jalali.min.js' %}"></script>
+    <!-- OR -->
+    <!-- loading by form (if used AdminJalaliDateWidget) -->
+    {{ form.media }}
+
+{% endblock %}
+
+

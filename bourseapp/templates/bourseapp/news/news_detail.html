@@ -1,0 +1,313 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load social_share %}
+{% load auth_extras %}
+{% block title %}
+    <title>خبر {{ news.title }}</title>
+
+    <meta name="description" content="{{ news.shortDescription|truncatechars:120 }}"/>
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{ news.title }}" />
+    <meta property="og:description" content="{{ news.shortDescription|truncatechars:120 }}" />
+    <meta property="og:url" content="{{ request.get_host }}{% url 'bourseapp:news-detail' news.id %}"/>
+    <meta property="og:site_name" content="مدیابورس: اخبار و آموزش بورس" />
+    {% if news.pic %}
+        <meta property="og:image" content="{{ request.get_host }}{{ news.pic.url }}" />
+    {% endif %}
+    <meta property="article:tag" content="بورس" />
+    <meta property="article:tag" content="اخبار بورس" />
+    <meta property="article:tag" content="بورس تهران" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:description" content="{{ news.shortDescription|truncatechars:120 }}" />
+    <meta name="twitter:title" content="{{ news.title }}" />
+    {% if news.pic %}
+        <meta name="twitter:image" content="{{ request.get_host }}{{ news.pic.url }}" />
+    {% endif %}
+
+{% endblock %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+
+<!-- begin of body block -->
+{% block body %}
+
+
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables.min.css' %}"><!-- MDBootstrap Datatables  -->
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables-select.min.css' %}"><!-- MDBootstrap Datatables  -->
+
+    <div class="container-fluid mt-0">
+        <div class="row">
+            <div class="col-9">
+                <div class="card py-5">
+
+                    <div class="card-body">
+                        <!--Section: Content-->
+                        <section class="px-md-5 mx-md-5 dark-grey-text text-center text-lg-left">
+
+                            <!--Grid row-->
+                            <div class="row">
+
+                                <!--Grid column-->
+                                <div class="col-lg-6 mb-4 mb-lg-0 ">
+
+                                    {% if news.company %}
+                                        <h3 class="font-weight-bold text-right">{{ news.company.fullName }} ({{ news.company.symbol }})</h3>
+                                    {% endif %}
+
+                                    <p class="font-weight-bold text-right">{{ news.title }} - {{ news.createAt|to_jalali:'%y/%m/%d' }}
+
+                                        {% if request.user.is_superuser or request.user|has_group:"level1" %}
+                                            <a href="{% url 'admin:bourseapp_news_change'  news.id %}" target="_blank"><i class="fa fa-edit"></i></a>
+
+                                            {% if news.isApproved == False %}
+                                                {#                            <a href="{% url 'bourseapp:news-approve'  news.id %}" target="_blank"><span class="small badge-pill mr-0 red " style="color: white">تایید نشده</span></a>#}
+                                                <a id="news-approve-status" data-toggle="modal" data-target="#modalNewsApprove"><span class="small badge-pill mr-0 red " style="color: white">تایید نشده</span></a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </p>
+
+                                    <div class="row mr-1">
+                                        {% post_to_telegram news.title url '<i class="fab fa-telegram fa-lg "></i>' %}
+                                        {% post_to_twitter  news.title url '<i class="fab fa-twitter fa-lg mr-2"></i>' %}
+                                        <a data-toggle="tooltip" title="فعال در موبایل ها" href="whatsapp://send?text=http://{{ request.get_host }}{{url}}  {{ news.title }}" data-action="share/whatsapp/share">
+                                            <i class="fab fa-whatsapp fa-lg mr-2"></i>
+                                        </a>
+                                    </div>
+
+
+                                    {#                    {{ news.description | safe }}#}
+                                    {#                    <textarea class="form-control border-0 disabled text-muted" rows="5">#}
+                                    {#                        {{ news.description }}#}
+                                    {#                    </textarea>#}
+
+                                    {#                    <p class="mt-2"><span class="badge badge-info  float-left">{{ news.tag }}</span></p>#}
+
+                                </div>
+                                <!--Grid column-->
+
+                                <!--Grid column-->
+                                <div class="col-lg-6 mb-4 mb-lg-0 d-flex align-items-center justify-content-center">
+
+                                    {% if news.pic %}
+                                        <a href="{{ news.pic.url }}" target="_blank">
+                                            <img src="{{ news.pic.url }}" class="img-fluid" alt="" style="width: 150px; height: 150px; object-fit: contain">
+                                        </a>
+                                    {% else %}
+                                        <img src="{% static 'bourseapp/images/news.png' %}" class="img-fluid" alt="" style="width: 150px; height: 150px; object-fit: contain">
+                                    {% endif %}
+
+                                </div>
+                                <!--Grid column-->
+
+                            </div>
+                            <!--Grid row-->
+
+                            <hr>
+
+                            <p class="text-muted text-right text-justify" dir="rtl">{{ news.description | safe  }}</p>
+
+                            <hr>
+                            <span class="badge badge-secondary float-right"><small>
+                                {% if news.user.last_name %}
+                                {{ news.user.last_name }}
+                                {% else %}
+                                {{ news.user }}
+                                {% endif %}
+                            </small></span>
+
+                            {% if news.reference  %}
+                                <a href="{{ news.reference }}" target="_blank">
+                                    <span class="small text-black-50">{{ news.reference|truncatechars:50 }}</span>
+                                    <span style="font-family: IRANSans"> :مرجع  </span>
+                                    <i class="fa fa-link"> </i>
+                                </a>
+                            {% endif %}
+
+                            <span class="small text-black-50 mr-1 ml-1" > {{ news.hit_count }} <i class="fa fa-eye" style="color: #c1c1c1"></i></span>
+
+                            {% if news.tag  %}
+                                <p class="mt-2"><span class="float-right small">{{ news.tag }}</span></p>
+                            {% endif %}
+                        </section>
+                        <!--Section: Content-->
+                    </div>
+                </div>
+
+            </div>
+            <!-- news -->
+            <div class="col-3">
+                <div class="card mb-4">
+
+                    <!-- Card header -->
+                    <div class="card-header text-center">
+                        اخبار
+                    </div>
+
+                    <!--Card content-->
+                    <div class="card-body">
+
+                        <!-- List group links -->
+                        <div class=" " style="margin-bottom: -3px">
+
+                            {% for new in news_all %}
+
+                                {% if new.isSuperUserPermition %}
+                                    {% if request.user.is_superuser or request.user|has_group:"level1" or request.user|has_group:"vip" %}
+                                        <div class="" style="margin-bottom: -3px">
+                                            <a href="{% url 'bourseapp:news-detail' new.id %}" class="" >
+                                                <p class="small" style="text-align: justify; color: black">
+                                                    <i class="fa fa-angle-double-left text-info"></i>
+                                                    {{ new.title }}
+                                                    {% if new.company %}
+                                                        ({{ new.company.symbol }})
+                                                    {% elif new.category %}
+                                                        ({{ new.category.title }})
+                                                    {% endif %}
+                                                    {% if new.createAt|is_past_due:new.createAt %}
+                                                        <i class="fa fa-star" style="color: #ffc400"></i>
+                                                    {% endif %}
+                                                    <span class="small text-black-50">{{ new.createAt|to_jalali:'%y/%m/%d' }}</span>
+                                                    <span class="small text-black-50 mr-1 ml-1" > {{ new.hit_count }} <i class="fa fa-eye" style="color: #c1c1c1"></i></span>
+                                                    <span class="small badge-pill mr-0 yellow ">VIP</span>
+                                                    {% if new.isApproved == False %}
+                                                        <span class="small badge-pill mr-1 red white-text">تایید نشده</span>
+                                                {% endif %}
+                                                </p>
+                                            </a>
+                                        </div>
+
+                                    {% endif %}
+                                {% else %}
+                                    {% if new.isApproved == False %}
+                                        {% if request.user.is_superuser or request.user|has_group:"level1" %}
+                                            <div class="" style="margin-bottom: -3px">
+                                                <a href="{% url 'bourseapp:news-detail' new.id %}" class="" >
+                                                    <p class="small" style="text-align: justify; color: black">
+                                                        <i class="fa fa-angle-double-left text-info"></i>
+                                                        {{ new.title }}
+                                                        {% if new.company %}
+                                                            ({{ new.company.symbol }})
+                                                        {% elif new.category %}
+                                                            ({{ new.category.title }})
+                                                        {% endif %}
+                                                        {% if new.createAt|is_past_due:new.createAt %}
+                                                            <i class="fa fa-star" style="color: #ffc400"></i>
+                                                        {% endif %}
+                                                        <span class="small text-black-50">{{ new.createAt|to_jalali:'%y/%m/%d' }}</span>
+                                                        <span class="small text-black-50 mr-1 ml-1" > {{ new.hit_count }} <i class="fa fa-eye" style="color: #c1c1c1"></i></span>
+                                                        <span class="small badge-pill mr-0 red white-text">تایید نشده</span>
+                                                    </p>
+                                                </a>
+                                            </div>
+
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="" style="margin-bottom: -3px">
+                                            <a href="{% url 'bourseapp:news-detail' new.id %}" class="" >
+                                                <p class="small" style="text-align: justify; color: black">
+                                                    <i class="fa fa-angle-double-left text-info"></i>
+                                                    {{ new.title }}
+                                                    {% if new.company %}
+                                                        ({{ new.company.symbol }})
+                                                    {% elif new.category %}
+                                                        ({{ new.category.title }})
+                                                    {% endif %}
+                                                    {% if new.createAt|is_past_due:new.createAt %}
+                                                        <i class="fa fa-star" style="color: #ffc400"></i>
+                                                    {% endif %}
+                                                    <span class="small text-black-50">{{ new.createAt|to_jalali:'%y/%m/%d' }}</span>
+                                                    {% if new.hit_count > 0 %}
+                                                        <span class="small mr-1 ml-1" style="color: #c1c1c1" > {{ new.hit_count }} <i class="fa fa-eye" style="color: #c1c1c1"></i></span>
+                                                    {% endif %}
+                                                </p>
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+
+                            {% endfor %}
+                            <a href="{% url 'bourseapp:news-list' %}" class="list-group-item list-group-item-action waves-effect text-center">
+                                تمامی خبرها
+                            </a>
+
+                        </div>
+                        <!-- List group links -->
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+    <input type="hidden" id="url-news-approve" data-url="{% url 'bourseapp:news-approve' news.id%}" />
+
+
+
+    <!-- Modal for approve news -->
+    <div class="modal fade" id="modalNewsApprove" tabindex="-1" role="dialog" aria-labelledby="modalNewsApproveLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-right" id="modalNewsApproveLabel">تایید خبر</h5>
+                </div>
+                <div class="modal-body">
+                    آیا از تایید خبر
+                    <strong style="font-weight: bold">"{{ news.title }}"</strong>
+                      مطمئنید؟
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">لغو</button>
+                    <button onclick="newsApproveByAdmin()" type="button" class="btn btn-primary">تایید</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascript %}
+
+    <!-- fill uploaded image -->
+    <script>
+        $('img').each(function(){
+            if ($(this).attr('src').indexOf("media/uploads") > -1){
+                {#alert($(this).attr('src'));#}
+                $(this).css({
+                    'width' : '100%',
+                    'object-fit' : 'contain',
+                });
+
+            }
+        });
+
+        //-- new span paragraph  --//
+        $('p:not(.small)').each(function(){
+            $(this).css({
+                    'font-size' : '14px',
+                    'text-align' : 'justify',
+                    'line-height' : '30px',
+                });
+        });
+
+        //-- new span paragraph  --//
+        $('span:not(.small)').each(function(){
+            $(this).css({
+                    'font-size' : '14px',
+                });
+        });
+    </script>
+
+    <script type="text/javascript" src="{% static 'bourseapp/js/news_detail.js' %}"></script>
+{% endblock %}

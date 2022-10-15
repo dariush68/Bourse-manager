@@ -1,0 +1,106 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load social_share %}
+{% block title %}
+    <title> {{ tutorial.title }}</title>
+
+    <meta name="description" content="{{ tutorialSubCat.description|truncatechars:120 }}"/>
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:type" content="tutorial" />
+    <meta property="og:title" content="{{ tutorialSubCat.title }}" />
+    <meta property="og:description" content="{{ tutorialSubCat.description|truncatechars:120 }}" />
+    <meta property="og:url" content="{{ request.get_host }}{% url 'bourseapp:tutorial-subCategory' tutorialSubCat.id %}"/>
+    <meta property="og:site_name" content="مدیابورس" />
+    {% if tutorialSubCat.pic %}
+        <meta property="og:image" content="{{ request.get_host }}{{ tutorialSubCat.pic.url }}" />
+    {% endif %}
+    <meta property="article:tag" content="بورس" />
+    <meta property="article:tag" content="آموزش بورس" />
+    <meta property="article:tag" content="بورس تهران" />
+    <meta property="article:tag" content="{{ tutorialSubCat.category.title }}" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:description" content="{{ tutorialSubCat.description|truncatechars:120 }}" />
+    <meta name="twitter:title" content="{{ tutorialSubCat.title }}" />
+    {% if tutorialSubCat.pic %}
+        <meta name="twitter:image" content="{{ request.get_host }}{{ tutorialSubCat.pic.url }}" />
+    {% endif %}
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables.min.css' %}"><!-- MDBootstrap Datatables  -->
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables-select.min.css' %}"><!-- MDBootstrap Datatables  -->
+
+
+    <!-- header section -->
+    <div class="col-md-12 mb-4">
+        <!--Tutorial-->
+        <div class="card mt-3">
+            <div class="card-header" role="tab">
+                <h5 class="text-center font-weight-bold mb-1">{{ tutorialSubCat.title }}</h5>
+            </div>
+            <!--Card content-->
+        </div>
+
+    <div class="row container-fluid mt-4">
+        {% for tutorial in tutorials %}
+
+                <figure class="col-md-3 d-md-inline-block">
+                    <a href="{% url 'bourseapp:tutorial-detail' tutorial.id %}"
+                       data-size="1600x1067">
+                        <div class="view rounded">
+                            {% if tutorial.category == 'تحلیل بازار' %}
+                                <img src="{% static 'bourseapp/images/tutorial_bazar.jpg' %}" class="img-fluid" alt="{{ tutorial.title }}">
+                            {% elif tutorial.category == 'تحلیل بنیادی'%}
+                                <img src="{% static 'bourseapp/images/tutorial_fundamental.png' %}" class="img-fluid" alt="{{ tutorial.title }}">
+                            {% else %}
+                                <img src="{% static 'bourseapp/images/tutorial_technical.png' %}" class="img-fluid" alt="{{ tutorial.title }}">
+                            {% endif %}
+
+                            <div class="mask flex-center rgba-black-strong">
+                            </div>
+                        </div>
+
+                        <!--Caption-->
+                        <div class="carousel-caption">
+                            <div class="animated fadeInDown">
+                                <i class="fa fa-video mb-1" style="font-size: 24px"></i>
+                                <h6 class="h6-responsive smaller">{{ tutorial.title|truncatechars:50 }} </h6>
+                                {% if tutorial.description %}
+                                    <p>({{ tutorial.description|truncatechars:50 }})</p>
+                                {% else %}
+                                    <p>-</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <!--Caption-->
+                    </a>
+                </figure>
+
+
+        {% endfor %}
+    </div>
+
+
+
+    </div>
+
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+
+    <!-- selected category id -->
+{#    <input type="hidden" id="category-selected-id" selected-id="-1">#}
+
+{% endblock %}
+
+{% block javascript %}
+{% endblock %}

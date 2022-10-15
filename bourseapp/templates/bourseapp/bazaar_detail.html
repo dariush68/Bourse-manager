@@ -1,0 +1,138 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load social_share %}
+{% block title %}
+    <title>تحلیل بازار {{ bazaar.company.symbol }}</title>
+
+    <meta name="description" content="{{ bazaar.description|truncatechars:120 }}"/>
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{ bazaar.title }}" />
+    <meta property="og:description" content="{{ bazaar.description|truncatechars:120 }}" />
+    <meta property="og:url" content="{{ request.get_host }}{% url 'bourseapp:bazaar-detail' bazaar.id %}"/>
+    <meta property="og:site_name" content="مدیابورس: اخبار و آموزش بورس" />
+    {% if bazaar.pic %}
+        <meta property="og:image" content="{{ request.get_host }}{{ bazaar.pic.url }}" />
+    {% endif %}
+    <meta property="article:tag" content="بورس" />
+    <meta property="article:tag" content="تحلیل بازار بورس" />
+    <meta property="article:tag" content="بورس تهران" />
+    <meta property="article:tag" content="{{ bazaar.company.symbol }}" />
+    <meta property="article:tag" content="{{ bazaar.company.fullName }}" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:description" content="{{ bazaar.description|truncatechars:120 }}" />
+    <meta name="twitter:title" content="{{ bazaar.title }}" />
+    {% if bazaar.pic %}
+        <meta name="twitter:image" content="{{ request.get_host }}{{ bazaar.pic.url }}" />
+    {% endif %}
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables.min.css' %}"><!-- MDBootstrap Datatables  -->
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables-select.min.css' %}"><!-- MDBootstrap Datatables  -->
+
+    <div class="container my-5 py-5 z-depth-1">
+
+        <!--Section: Content-->
+        <section class="px-md-5 mx-md-5 dark-grey-text text-center text-lg-left">
+
+            <!--Grid row-->
+            <div class="row">
+
+                <!--Grid column-->
+                <div class="col-lg-6 mb-4 mb-lg-0 ">
+
+                    <h3 class="font-weight-bold text-right">{{ bazaar.company.fullName }} ({{ bazaar.company.symbol }})</h3>
+
+                    <p class="font-weight-bold text-right">{{ bazaar.title }} - {{ bazaar.createAt|to_jalali:'%y/%m/%d' }}
+                    {% if user.is_authenticated%}
+                        <a class=" text-right" href="{% url 'admin:bourseapp_bazaar_change' bazaar.id %}" target="_blank"><i class="fa fa-edit"></i></a>
+                    {% endif %}
+                    </p>
+                    <div class="row mr-1">
+                        {% post_to_telegram bazaar.title url '<i class="fab fa-telegram fa-lg "></i>' %}
+                        {% post_to_twitter  bazaar.title url '<i class="fab fa-twitter fa-lg mr-2"></i>' %}
+                        <a data-toggle="tooltip" title="فعال در موبایل ها" href="whatsapp://send?text=http://{{ request.get_host }}{{url}}  {{ bazaar.title }}" data-action="share/whatsapp/share">
+                            <i class="fab fa-whatsapp fa-lg mr-2"></i>
+                        </a>
+                    </div>
+
+
+                    {#                    <textarea class="form-control border-0 disabled text-muted" rows="5">#}
+{#                        {{ news.description }}#}
+{#                    </textarea>#}
+
+                </div>
+                <!--Grid column-->
+
+                <!--Grid column-->
+                <div class="col-lg-6 mb-4 mb-lg-0 d-flex align-items-center justify-content-center">
+
+                    {% if bazaar.pic %}
+                        <a href="{{ bazaar.pic.url }}" target="_blank"><img src="{{ bazaar.pic.url }}" class="img-fluid" alt="" style="width: 150px; height: 150px; object-fit: cover"></a>
+                    {% else %}
+                        <img src="{% static 'bourseapp/images/technical.jpg' %}" class="img-fluid" alt="" style="width: 150px; height: 150px; object-fit: cover">
+                    {% endif %}
+
+                </div>
+                <!--Grid column-->
+
+            </div>
+            <!--Grid row-->
+
+            <hr>
+
+            <p class="text-muted text-right text-justify mt-5 mb-5">{{ bazaar.description | safe }}</p>
+
+            <div class="mt-5" style="text-align: center">
+                <div class="w-75" style="display: inline-block">
+                    {% if bazaar.aparatEmbedCode %}
+                        {{ bazaar.aparatEmbedCode|safe }}
+                    {% endif %}
+                </div>
+
+            </div>
+
+
+        </section>
+        <!--Section: Content-->
+
+
+
+    </div>
+
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+
+    <!-- selected category id -->
+{#    <input type="hidden" id="category-selected-id" selected-id="-1">#}
+
+
+{% endblock %}
+
+{% block javascript %}
+
+    <!-- fill uploaded image -->
+    <script>
+        $('img').each(function(){
+            if ($(this).attr('src').indexOf("media/uploads") > -1){
+                {#alert($(this).attr('src'));#}
+                $(this).css({
+                    'width' : '100%',
+                    'height' : '100%'
+                });
+
+            }
+        });
+    </script>
+{% endblock %}

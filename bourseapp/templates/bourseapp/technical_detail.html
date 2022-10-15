@@ -1,0 +1,179 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load auth_extras %}
+{% load social_share %}
+{% block title %}
+    <title>تحلیل تکنیکال {{ technical.company.symbol }}</title>
+
+    <meta name="description" content="{{ technical.description|truncatechars:120 }}"/>
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{ technical.title }}" />
+    <meta property="og:description" content="{{ technical.description|truncatechars:120 }}" />
+    <meta property="og:url" content="{{ request.get_host }}{% url 'bourseapp:technical-detail' technical.id %}"/>
+    <meta property="og:site_name" content="مدیابورس: اخبار و آموزش بورس" />
+    {% if technical.pic %}
+        <meta property="og:image" content="{{ request.get_host }}{{ technical.pic.url }}" />
+    {% endif %}
+    <meta property="article:tag" content="بورس" />
+    <meta property="article:tag" content="تحلیل تکنیکال بورس" />
+    <meta property="article:tag" content="بورس تهران" />
+    <meta property="article:tag" content="{{ technical.company.symbol }}" />
+    <meta property="article:tag" content="{{ technical.company.fullName }}" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:description" content="{{ technical.description|truncatechars:120 }}" />
+    <meta name="twitter:title" content="{{ technical.title }}" />
+    {% if technical.pic %}
+        <meta name="twitter:image" content="{{ request.get_host }}{{ technical.pic.url }}" />
+    {% endif %}
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables.min.css' %}"><!-- MDBootstrap Datatables  -->
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables-select.min.css' %}"><!-- MDBootstrap Datatables  -->
+
+    <div class="container my-5 py-5 z-depth-1">
+
+        <!--Section: Content-->
+        <section class="px-md-5 mx-md-5 dark-grey-text text-center text-lg-left">
+
+            <!--Grid row-->
+            <div class="row">
+
+                <!--Grid column-->
+                <div class="col-lg-6 mb-4 mb-lg-0 ">
+
+                    <h3 class="font-weight-bold text-right">{{ technical.company.fullName }} ({{ technical.company.symbol }})</h3>
+
+                    <p class="font-weight-bold text-right">{{ technical.title }} - {{ technical.createAt|to_jalali:'%y/%m/%d' }}
+                    {% if request.user.is_superuser or request.user|has_group:"level1" %}
+                        <a class=" text-right" href="{% url 'admin:bourseapp_technical_change' technical.id %}" target="_blank"><i class="fa fa-edit"></i></a>
+                    {% endif %}
+                    </p>
+                    <div class="row mr-1">
+                        {% post_to_telegram technical.title url '<i class="fab fa-telegram fa-lg "></i>' %}
+                        {% post_to_twitter  technical.title url '<i class="fab fa-twitter fa-lg mr-2"></i>' %}
+                        <a data-toggle="tooltip" title="فعال در موبایل ها" href="whatsapp://send?text=http://{{ request.get_host }}{{url}}  {{ technical.title }}" data-action="share/whatsapp/share">
+                            <i class="fab fa-whatsapp fa-lg mr-2"></i>
+                        </a>
+                    </div>
+
+
+                    {#                    <textarea class="form-control border-0 disabled text-muted" rows="5">#}
+{#                        {{ news.description }}#}
+{#                    </textarea>#}
+
+                </div>
+                <!--Grid column-->
+
+                <!--Grid column-->
+                <div class="col-lg-6 mb-4 mb-lg-0 d-flex align-items-center justify-content-center">
+
+                    {% if technical.pic %}
+                        {% if request.user.is_superuser or request.user|has_group:"level1" or request.user|has_group:"vip" %}
+                            <a href="{{ technical.pic.url }}" target="_blank"><img src="{{ technical.pic.url }}" class="img-fluid" alt="" style="width: 150px; height: 150px; object-fit: cover"></a>
+                        {% else %}
+                            <img src="{% static 'bourseapp/images/technical.jpg' %}" class="img-fluid" alt="" style="width: 150px; height: 150px; object-fit: cover">
+                        {% endif %}
+                    {% else %}
+                        <img src="{% static 'bourseapp/images/technical.jpg' %}" class="img-fluid" alt="" style="width: 150px; height: 150px; object-fit: cover">
+                    {% endif %}
+
+                </div>
+                <!--Grid column-->
+
+            </div>
+            <!--Grid row-->
+
+            <hr>
+
+            {% if request.user.is_superuser or request.user|has_group:"level1" or request.user|has_group:"vip" %}
+                <p class="text-muted text-right text-justify mt-5 mb-5">{{ technical.description | safe }}</p>
+
+                <div class="mt-5" style="text-align: center">
+                    <div class="w-75" style="display: inline-block">
+                        {% if technical.aparatEmbedCode %}
+                            {{ technical.aparatEmbedCode|safe }}
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <!-- video file -->
+                {% if technical.video %}
+                    <div class="text-center">
+                        <video class="video-fluid z-depth-1 w-75" controls>
+                            <source src="{{ technical.video.url }}" type="video/mp4" />
+                        </video>
+                    </div>
+                {% endif %}
+
+                <!-- audio file -->
+                {% if technical.audio %}
+                    <div class="text-center">
+
+                        <audio controls>
+                            <source src="{{ technical.audio.url }}" type="audio/mp3">
+                            {#                        <source src="horse.ogg" type="audio/ogg">#}
+                            {#                        <source src="horse.mp3" type="audio/mpeg">#}
+                            Your browser does not support the audio element.
+                        </audio>
+
+                    </div>
+                {% endif %}
+
+                <hr>
+                <span class="float-right"><small>
+                تحلیلگر:
+                                {% if technical.user.last_name %}
+                                    {{ technical.user.last_name }}
+                                {% else %}
+                                    {{ technical.user }}
+                                {% endif %}
+                            </small></span>
+
+                <span class="small text-black-50 mr-1 ml-1" > {{ technical.hit_count }} <i class="fa fa-eye" style="color: #c1c1c1"></i></span>
+
+            {% endif %}
+        </section>
+        <!--Section: Content-->
+
+
+
+    </div>
+
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+
+    <!-- selected category id -->
+{#    <input type="hidden" id="category-selected-id" selected-id="-1">#}
+
+
+{% endblock %}
+
+{% block javascript %}
+
+    <!-- fill uploaded image -->
+    <script>
+        $('img').each(function(){
+            if ($(this).attr('src').indexOf("media/uploads") > -1){
+                {#alert($(this).attr('src'));#}
+                $(this).css({
+                    'width' : '100%',
+                    'height' : '100%'
+                });
+
+            }
+        });
+    </script>
+{% endblock %}

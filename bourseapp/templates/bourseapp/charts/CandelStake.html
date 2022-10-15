@@ -1,0 +1,185 @@
+<!-- Styles -->
+<style>
+    #chartdiv {
+        width: 100%;
+        height: 500px;
+    }
+</style>
+
+<!-- Resources -->
+<script src="https://www.amcharts.com/lib/4/core.js"></script>
+<script src="https://www.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+<input type="hidden" id="url-chart-shakes" data-url="{% url 'api-bourseapp:chart-bazaar-view' %}" />
+<input type="hidden" id="url-chart-symbol" data-url="{% url 'api-bourseapp:chart-detail' 12345 %}" />
+
+<!-- Chart code -->
+<script>
+    am4core.ready(function() {
+
+        // Themes begin
+        am4core.useTheme(am4themes_animated);
+        // Themes end
+
+        var chart = am4core.create("chartdiv", am4charts.XYChart);
+        chart.paddingRight = 20;
+
+        chart.dateFormatter.inputDateFormat = "yyyy-MM-dd";
+
+        var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+        dateAxis.renderer.grid.template.location = 0;
+
+        var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+        valueAxis.tooltip.disabled = true;
+
+        var series = chart.series.push(new am4charts.CandlestickSeries());
+        series.dataFields.dateX = "date";
+        series.dataFields.valueY = "close";
+        series.dataFields.openValueY = "open";
+        series.dataFields.lowValueY = "low";
+        series.dataFields.highValueY = "high";
+        series.simplifiedProcessing = true;
+        series.tooltipText = "Open:${openValueY.value}\nLow:${lowValueY.value}\nHigh:${highValueY.value}\nClose:${valueY.value}";
+
+        chart.cursor = new am4charts.XYCursor();
+
+        // a separate series for scrollbar
+        var lineSeries = chart.series.push(new am4charts.LineSeries());
+        lineSeries.dataFields.dateX = "date";
+        lineSeries.dataFields.valueY = "close";
+        // need to set on default state, as initially series is "show"
+        lineSeries.defaultState.properties.visible = false;
+
+        // hide from legend too (in case there is one)
+        lineSeries.hiddenInLegend = true;
+        lineSeries.fillOpacity = 0.5;
+        lineSeries.strokeOpacity = 0.5;
+
+        var scrollbarX = new am4charts.XYChartScrollbar();
+        scrollbarX.series.push(lineSeries);
+        chart.scrollbarX = scrollbarX;
+
+        fetchChart(function (data) {
+
+            {#console.log(data)#}
+            chart.data = data;
+        });
+        /*chart.data = [ {
+            "date": "2011-08-01",
+            "open": "136.65",
+            "high": "136.96",
+            "low": "134.15",
+            "close": "136.49"
+        }, {
+            "date": "2011-08-02",
+            "open": "135.26",
+            "high": "135.95",
+            "low": "131.50",
+            "close": "131.85"
+        }];*/
+
+    }); // end am4core.ready()
+
+    //--
+    function fetchChart(callBack) {
+
+        let url_chart = document.querySelector('#url-chart-shakes').dataset.url;
+        let symbol_id = document.querySelector('#input-temp-current-symbol-id').dataset.symbol;
+        let url_chartSymbol = document.querySelector('#url-chart-symbol').dataset.url.replace(/12345/, symbol_id.toString());
+
+        console.log("symbol_id", symbol_id)
+        // alert(url_chart);
+        // return
+
+        let url = "";
+        if(symbol_id == "-1") url = url_chart;
+        else url = url_chartSymbol;
+
+        getCSVaddress(url, function (csvURL) {
+            var xhttp = new XMLHttpRequest();
+            // console.log("read csv done")
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    // Typical action to be performed when the document is ready:
+                    // console.log(xhttp.response);
+
+                    console.log("data::", $.csv.toObjects(xhttp.response));
+                    let data = $.csv.toObjects(xhttp.response);
+                    {#console.log(data);#}
+                    {#console.log(data['<DTYYYYMMDD>']);#}
+                    {#console.log(data['<DTYYYYMMDD>'][0]);#}
+
+                    let len = data.length; //Object.keys(data['<DTYYYYMMDD>']).length;
+                    {#console.log(len)#}
+                    {#console.log(data[len-1]['<DTYYYYMMDD>']);#}
+
+                    if(len == 0) document.querySelector('#chartdiv').style.display = "block";
+
+                    let d1 = data[len-1]['<DTYYYYMMDD>'].toString();
+                    let datec1 = d1.substr(0,4) + "-" + d1.substr(4,2) + "-" + d1.substr(6,2);
+
+                    const d = new Date(datec1);
+                    let options = { year: 'numeric', month: 'numeric', day: 'numeric', };
+                    const datec2 = new Intl.DateTimeFormat('fa-IR', options).format(d);
+
+                    document.querySelector('#shakesh-last-date').innerHTML = datec2;
+                    document.querySelector('#shakesh-last-price').innerHTML = data[len-1]['<CLOSE>'];
+
+                    let chartData = [];
+
+                    for (var i = Math.floor(len*0.75); i < len; i++) {
+
+                        let d2 = data[i]['<DTYYYYMMDD>'].toString();
+                        let datec = d2.substr(0,4) + "-" + d2.substr(4,2) + "-" + d2.substr(6,2);
+
+                        {#console.log(d, datec)#}
+
+                        chartData.push({
+                            "date": datec,
+                            "open": data[i]['<OPEN>'],
+                            "high": data[i]['<HIGH>'],
+                            "low": data[i]['<LOW>'],
+                            "close": data[i]['<CLOSE>']
+                        });
+
+                    }
+                    {#console.log(JSON.stringify(chartData))#}
+                    callBack(chartData);
+                }
+                else if (this.readyState == 4 && this.status >= 400) {
+                    document.querySelector('#chartdiv').style.display = "none";
+                }
+            };
+            xhttp.open("GET", csvURL, true);
+            xhttp.setRequestHeader('Content-Type', 'application/json');
+            xhttp.setRequestHeader('Accept', 'application/json');
+            xhttp.send();
+        });
+
+    }
+
+    //-- get csv file url --//
+    function getCSVaddress(url, callBack) {
+
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                {#console.log(xhttp.response);#}
+                let obj = JSON.parse(xhttp.response);
+                let csvURL = obj.data;
+                {#console.log(csvURL);#}
+                callBack(csvURL);
+            }
+            else if (this.readyState == 4 && this.status >= 400) {}
+        };
+        xhttp.open("GET", url, true);
+        xhttp.setRequestHeader('Content-Type', 'application/json');
+        xhttp.setRequestHeader('Accept', 'application/json');
+        xhttp.send();
+    }
+
+</script>
+
+
+<div id="chartdiv" dir="ltr"></div>

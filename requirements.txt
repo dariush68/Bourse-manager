@@ -1,0 +1,16 @@
+Django==2.2.9
+django-ckeditor==5.8.0
+django-cleanup
+django-crispy-forms
+django-jalali-date
+django-js-asset
+djangorestframework
+drf-rw-serializers
+jdatetime
+mysqlclient==1.4.6
+Pillow
+sqlparse
+django_social_share
+django-jsonfield
+djangorestframework-simplejwt
+

@@ -1,0 +1,39 @@
+# ignore an entire directory   
+/.idea/
+/bourseapp/__pycache__/
+/Bourse/__pycache__/
+/bourseapp/migrations/
+/venv/
+/venv/*
+/__pycache__/
+/media/
+/tmp/
+/Bourse/*
+/charts/*
+/media/*
+
+
+# ignore a file type
+# *.json
+*.pyc
+*.sqlite3
+*.xml
+*.log
+*.log
+*.CSV
+*.PRN
+
+# add an exception (using !) to the preceding rule to track a specific file
+# !package.json
+
+# ignore a single file
+# mycode.class
+stderr.log
+manage.py
+/bourseapp/__init__.py
+/Bourse/__init__.py
+/Bourse/asgi.py
+/Bourse/wsgi.py
+/Bourse/settings.py
+/bourseapp/api/__init__.py
+/manage.py

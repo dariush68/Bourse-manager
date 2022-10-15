@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+{#https://mdbootstrap.com/docs/jquery/components/demo/#}
+<html lang="en">
+
+{% load auth_extras %}
+{% spaceless %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    {% load staticfiles %}
+{#    <link rel="stylesheet" href="{% static 'bourseapp/css/bootstrap.min.css' %}">#}
+    <link rel="stylesheet" href="{% static 'bourseapp/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bourseapp/css/animate.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bourseapp/css/animate.css' %}">
+    <link rel="stylesheet" href="{% static 'bourseapp/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'bourseapp/css/all.css' %}">
+    <link rel="stylesheet" href="{% static 'bourseapp/css/search-box.css' %}">
+    <link rel="stylesheet" href="{% static 'bourseapp/css/header-navbar.css' %}">
+    <!-- Font Awesome -->
+{#    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">#}
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/bootstrap.min.css' %}">
+    <!-- Material Design Bootstrap -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/mdb.min.css' %}">
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables.min.css' %}">
+
+
+    <style>
+
+    </style>
+    {% block title %}
+
+    {% endblock %}
+
+    <link rel="icon" type="image/x-icon" href="{% static 'bourseapp/images/logo.png' %}" />
+{#    <link rel="icon" href="#" />#}
+
+</head>
+{% endspaceless %}
+
+{% spaceless %}
+<body id="main-container-base" style="direction: rtl ; background-color: #f9f9f9; text-align: right ; font-family: IRANSans,serif !important; font-size: 14px;" id="home">
+
+    {% if user.is_authenticated%}
+        <!-- nav bar -->
+        <header class="cyan darken-3">
+            <div class="container-fluid d-flex align-items-center d-none" style="height: 50px;">
+                <a href="{% url 'bourseapp:index' %}" class="mr-4">
+                    <img class="imageSize img-responsive" src="{% static 'bourseapp/images/logo.png' %}" style="padding-left: 10px; width: 40px; object-fit: contain" alt="">
+                    <span class="civilprime py-1 align-middle" style="font-size: 15px; color: white">اخبار، آموزش بورس</span>
+                </a>
+
+
+                <a href="#" class="mr-auto d-none d-md-block" style="color: white; cursor: pointer">
+                    ارتباط با ما
+                </a>
+                <!-- auth component -->
+                {% if user.is_authenticated%}
+                    <div class="dropdown d-md-block">
+                        <button class="btn btn-sm btn-outline-light px-3" id="user-account-info"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-user align-middle ml-1"></i>
+                            <i class="fa fa-chevron-down align-middle"></i>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="user-account-info">
+                            <a href="#" class="dropdown-item d-md-block text-right  pr-3" style="color: black; cursor: pointer; font-size: 14px">
+                                <i class="fa fa-user align-middle ml-2" style="width: 18px;"></i>
+                                کاربر: {{ user.get_username }}
+                            </a>
+                            <hr style="margin: 5px 0">
+                            {% if user.is_superuser %}
+                                <a href="#" class="dropdown-item d-md-block text-right  pr-3" style="color: black; cursor: pointer; font-size: 14px">
+                                    <i class="fa fa-lock-open align-middle ml-2" style="width: 18px;"></i>
+                                    (دسترسی مدیریت)
+                                </a>
+                            {% elif request.user|has_group:"level1" %}
+                                <a href="#" class="dropdown-item d-md-block text-right  pr-3" style="color: black; cursor: pointer; font-size: 14px">
+                                    <i class="fa fa-lock-open align-middle ml-2" style="width: 18px;"></i>
+                                    <span class="small badge-pill mr-0 text-white blue ">ADMIN</span>
+                                </a>
+                            {% elif request.user|has_group:"vip" %}
+                                <a href="#" class="dropdown-item d-md-block text-right  pr-3" style="color: black; cursor: pointer; font-size: 14px">
+                                    <i class="fa fa-lock-open align-middle ml-2" style="width: 18px;"></i>
+                                    <span class="small badge-pill mr-0 yellow ">VIP</span>
+                                </a>
+                            {% else %}
+                                <a href="#" class="dropdown-item d-md-block text-right  pr-3" style="color: black; cursor: pointer; font-size: 14px">(دسترسی کاربر)</a>
+                            {% endif %}
+                            <hr style="margin: 5px 0">
+                            <a href="{% url 'logout'%}?next={{request.path}}" class=" d-md-block text-right pr-3" style="color: black; cursor: pointer; font-size: 14px">
+                                <i class="fa fa-sign-out-alt align-middle ml-2" style="width: 18px;"></i>
+                                خروج
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login'%}?next={{request.path}}" class="mx-4 d-md-block border rounded py-1 px-2 align-middle" style="color: white; cursor: pointer">
+                        <i class="fa fa-user align-middle ml-2"></i>
+                        ورود</a>
+                {% endif %}
+
+                <a class="d-block d-md-none border rounded d-flex mr-auto py-1 px-2" id="header-toggler" style="border-color: white !important; cursor: pointer">
+                    <i id="toggler-icon" class="fas fa-bars"></i>
+                </a>
+            </div>
+            <div id="inner-header" class="container-fluid">
+                <ul id="header-nav" class="list-unstyled">
+                    <li class="d-none d-md-flex">
+                        <a href="{% url 'bourseapp:index' %}">
+                            <i class="fas fa-home" style="cursor: pointer; font-size: 28px; color: rgb(102, 102, 102)"></i>
+                        </a>
+                    </li>
+                <!--User Information-->
+                    <li class="d-md-none" >
+                        <div class="list-group-item d-flex justify-content-start align-items-center py-3">
+                            <img src="{% static 'bourseapp/images/Blank-Placeholder.jpg' %}" class="rounded-circle z-depth-0" width="50" alt="avatar image">
+                            <div class="d-flex flex-column pl-3">
+                                <p class="font-weight-normal mb-0 mr-1">
+                                    {% if user.first_name or user.first_name %}
+                                        {{ user.first_name }} {{ user.last_name }}
+                                    {% endif %}
+                                </p>
+                                <p class="small mb-0 mr-1">
+                                    {% if user.is_superuser %}
+                                        مدیر
+                                    {% elif user|has_group:"vip" %}
+                                        <span class="small badge-pill mr-0 yellow ">VIP</span>
+                                    {% endif %}
+                                ({{ user.username }})
+                                </p>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="d-md-none" >
+                        <a href="{% url 'bourseapp:index' %}">
+                            <span id="materials2" style="font-size: 16px; cursor: pointer; color: black">
+                                <i id="materials-icon" class="fa fa-home align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                خانه
+                            </span>
+                        </a>
+                    </li>
+                    <li class="d-none" >
+                        <a href="{% url 'bourseapp:category-list' %}">
+                            <span id="materials" style="font-size: 16px; cursor: pointer; color: black">
+                                <i id="materials-icon" class="fa fa-layer-group align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                گروه ها
+                            </span>
+                        </a>
+                    </li>
+                    {% if user.is_superuser %}
+                        <li>
+                            <a href="{% url 'bourseapp:manager-panel' %}">
+                                <span id="companies" style="font-size: 16px; cursor: pointer; color: black">
+                                    <i id="companies-icon" class="fa fa-user align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                    پنل مدیریت
+                                    <span class="badge badge-info badge-pill">{{ events }}</span>
+                                </span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                        <li>
+                            <a href="{% url 'bourseapp:user-panel' %}">
+                                <span id="companies" style="font-size: 16px; cursor: pointer; color: black">
+                                    <i id="companies-icon" class="fa fa-user align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                    پنل کاربری
+                                </span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li>
+                        <a href="{% url 'bourseapp:company-list' %}">
+                            <span id="companies" style="font-size: 16px; cursor: pointer; color: black">
+                                <i id="companies-icon" class="fa fa-industry-alt align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                نمادها
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'bourseapp:news-list' %}">
+                            <span id="companies" style="font-size: 16px; cursor: pointer; color: black">
+                                <i id="companies-icon" class="fa fa-newspaper align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                اخبار
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <div class="dropdown">
+                                <span id="companies" style="font-size: 16px; cursor: pointer; color: black" class=" dropdown-toggle" type="button" id="dropdownMenuMenu" data-toggle="dropdown"
+                                      aria-haspopup="true" aria-expanded="false">
+                                    <i id="companies-icon" class="fa fa-file-chart-line align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                    تحلیل ها
+                                </span>
+
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuMenu">
+                                    <a href="{% url 'bourseapp:technical-list' %}" class="dropdown-item" type="button">تکنیکال<i class="fa fa-chart-line text-black-50 mr-2"></i></a>
+                                    <a href="{% url 'bourseapp:fundamental-list' %}" class="dropdown-item" type="button">بنیادی<i class="fa fa-chart-bar text-black-50 mr-2"></i></a>
+                                    <a href="{% url 'bourseapp:bazaar-list' %}" class="dropdown-item" type="button">بازار<i class="fa fa-chart-pie-alt text-black-50 mr-2"></i></a>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="{% url 'bourseapp:webinar-list' %}">
+                            <span id="companies" style="font-size: 16px; cursor: pointer; color: black">
+                                <i id="companies-icon" class="fa fa-video align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                وبینار
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <div class="dropdown">
+                            <span id="companies" style="font-size: 16px; cursor: pointer; color: black" class=" dropdown-toggle" type="button" id="dropdownMenuMenu" data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
+                                <i id="companies-icon" class="fa fa-books align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                آموزش
+                            </span>
+
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuMenu">
+                                {% for itm in tutorialCategory %}
+
+                                    <a href="{% url 'bourseapp:tutorial-category' itm.id %}" class="dropdown-item" type="button">{{ itm.title }}</a>
+
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    </li>
+                    {% if user.is_superuser %}
+                        <li>
+                            <a href="{% url 'bourseapp:message-list' %}">
+                            <span id="companies" style="font-size: 16px; cursor: pointer; color: black">
+                                <i id="companies-icon" class="fa fa-paperclip align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                پیام های مدیر
+                            </span>
+                            </a>
+                        </li>
+                    {% endif %}
+                        <li>
+                            <a href="{% url 'bourseapp:messenger' %}">
+                            <span id="companies" style="font-size: 16px; cursor: pointer; color: black">
+                                <i id="companies-icon" class="fa fa-comments align-middle mr-1" style="font-size: 12px; color: gray"></i>
+                                پیام ها
+
+                            {% if request.user.is_superuser or request.user|has_group:"level1" %}
+                                <span class="badge badge-info badge-pill">{{ unReadMsgCount }}</span>
+                            {% endif %}
+                            </span>
+                            </a>
+                        </li>
+
+
+                </ul>
+            </div>
+        </header>
+
+    {% else %}
+        <!-- nav bar -->
+        <header class="cyan darken-3">
+            <div class="container-fluid d-flex align-items-center d-none" style="height: 50px;">
+                <a href="{% url 'bourseapp:index' %}" class="mr-4">
+                    <img class="imageSize img-responsive" src="#" style="padding-left: 10px; width: 110px" alt="">
+                    <span class="civilprime py-1 align-middle" style="font-size: 15px; color: white">مدیریت نمادهای بورسی</span>
+                </a>
+
+
+                <a href="#" class="mr-auto d-none d-md-block" style="color: white; cursor: pointer">
+                    ارتباط با ما
+                </a>
+                <!-- auth component -->
+                {% if user.is_authenticated%}
+                    <div class="dropdown d-md-block">
+                        <button class="btn btn-sm btn-outline-light px-3" id="user-account-info"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-user align-middle ml-1"></i>
+                            <i class="fa fa-chevron-down align-middle"></i>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="user-account-info">
+                            <a href="#" class="dropdown-item d-md-block text-right  pr-3" style="color: black; cursor: pointer; font-size: 14px">
+                                <i class="fa fa-user align-middle ml-2" style="width: 18px;"></i>
+                                کاربر: {{ user.get_username }}
+                            </a>
+                            <hr style="margin: 5px 0">
+                            {% if user.is_superuser %}
+                                <a href="#" class="dropdown-item d-md-block text-right  pr-3" style="color: black; cursor: pointer; font-size: 14px">
+                                    <i class="fa fa-lock-open align-middle ml-2" style="width: 18px;"></i>
+                                    (دسترسی مدیریت)
+                                </a>
+                            {% else %}
+                                <a href="#" class="dropdown-item d-md-block text-right  pr-3" style="color: black; cursor: pointer; font-size: 14px">(دسترسی کاربر)</a>
+                            {% endif %}
+                            <hr style="margin: 5px 0">
+                            <a href="{% url 'logout'%}?next={{request.path}}" class=" d-md-block text-right pr-3" style="color: black; cursor: pointer; font-size: 14px">
+                                <i class="fa fa-sign-out-alt align-middle ml-2" style="width: 18px;"></i>
+                                خروج
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login'%}?next={{request.path}}" class="mx-4 d-md-block border rounded py-1 px-2 align-middle" style="color: white; cursor: pointer">
+                        <i class="fa fa-user align-middle ml-2"></i>
+                        ورود</a>
+                {% endif %}
+
+            </div>
+        </header>
+    {% endif %}
+
+    <main class="container-fluid" style="max-width: calc(1800px + 2%); margin-top: 20px">
+
+        {% block body %}
+        {% endblock %}
+        {% block section %}
+        {% endblock %}
+    </main>
+
+
+<!--    {% if user.is_authenticated%}-->
+        <!-- Footer -->
+        <footer id="footer-base" class="page-footer font-small cyan darken-3">
+
+            <!-- Footer Elements -->
+            <div class="container">
+
+                <!-- Grid row-->
+                <div class="row">
+
+                    <!-- Grid column -->
+                    <div class="col-md-12 py-5">
+                        <div class="mb-5 flex-center">
+
+                            <!-- Wathsapp -->
+                            <a class="fb-ic" href="https://chat.whatsapp.com/DWgYaDNmT8yCynOzEAT8Zy" target="_blank">
+                                <i class="fab fa-whatsapp fa-lg white-text mr-md-5 mr-3 fa-2x"> </i>
+                            </a>
+                            <!-- Telegram -->
+                            <a class="gplus-ic" href="https://t.me/mediabourse" target="_blank">
+                                <i class="fab fa-telegram fa-lg white-text mr-md-5 mr-3 fa-2x"> </i>
+                            </a>
+                            <!--Instagram-->
+                            <a class="ins-ic" href="https://instagram.com/mediabourse.ir?igshid=16uz5utkbsvpq" target="_blank">
+                                <i class="fab fa-instagram fa-lg white-text mr-md-5 mr-3 fa-2x"> </i>
+                            </a>
+                            {% if user.is_superuser or request.user|has_group:"level1" %}
+                                <!--download direct-->
+                                <a class="ins-ic" href="https://mediabourse.ir/media/files/MediaBourseTraderSetup_v1_0_4.exe" target="_blank">
+                                    <i class="fa fa-file-download fa-lg white-text mr-md-5 mr-3 fa-2x"> </i>
+                                </a>
+                            {% endif  %}
+
+                        </div>
+                    </div>
+                    <!-- Grid column -->
+
+                </div>
+                <!-- Grid row-->
+
+            </div>
+            <!-- Footer Elements -->
+
+            <!-- Copyright -->
+            <div class="footer-copyright text-center py-3">© 2019 Copyright:
+                <a href="http://mediasoft.ir/" target="_blank"> Mediasoft.ir</a>
+            </div>
+            <!-- Copyright -->
+
+        </footer>
+        <!-- Footer -->
+<!--    {% endif %}-->
+
+
+    <a href="#home" id="go-to-top">
+        <i class="fa fa-chevron-up align-middle"></i>
+    </a>
+
+
+    <!-- hidden url params to send to js -->
+    <input type="hidden" id="url-home" data-url="{% url 'bourseapp:index' %}" />
+    <input type="hidden" id="url-symbol" data-url="{% url 'api-bourseapp:symbols-view' %}" />
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+
+
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/jquery.min.js' %}"></script>
+    <!-- Bootstrap tooltips -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/popper.min.js' %}"></script>
+    <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/bootstrap.min.js' %}"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/mdb.min.js' %}"></script>
+    <!-- MDB table core JavaScript -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/addons/datatables.min.js' %}"></script>
+
+    {#    <script src="{% static 'bourseapp/js/jquery-3.4.1.min.js' %}"></script>#}
+{#    <script src="{% static 'bourseapp/js/popper.min.js' %}"></script>#}
+{#    <script src="{% static 'bourseapp/js/bootstrap.min.js' %}"></script>#}
+    <script src="{% static 'bourseapp/js/wow.min.js' %}"></script>
+
+    <script src="{% static 'bourseapp/js/pagination.min.js' %}"></script>
+    <script src="{% static 'bourseapp/js/jquery.csv.min.js' %}"></script>
+
+    {% block javascript %}
+    {% endblock %}
+
+{#    #}
+{#    <script src="{% static 'bourseapp/js/all.js' %}"></script>#}
+    <script src="{% static 'bourseapp/js/header-navbar.js' %}"></script>
+    <script src="{% static 'bourseapp/js/pages/utils.js' %}"></script>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
+    </script>
+    <script>
+        {#console.log($(window).outerWidth());#}
+
+    </script>
+    <script>
+        var input = document.getElementById("global-search-box");
+        input.addEventListener("keyup", function(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                document.getElementById("global-search-btn").click();
+            }
+        });
+    </script>
+</body>
+{% endspaceless %}
+</html>
+{#"#}

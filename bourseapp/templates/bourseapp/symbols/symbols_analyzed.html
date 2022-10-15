@@ -1,0 +1,90 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load auth_extras %}
+{% block title %}
+    <title>گروه های بورسیا</title>
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+
+
+    <div class="container my-5">
+
+        <!-- Section -->
+        <section>
+
+            <h6 class="font-weight-bold text-center grey-text text-uppercase small mb-4">آرشیو</h6>
+            <h3 class="font-weight-bold text-center dark-grey-text pb-2">تمامی نمادها</h3>
+            <hr class="w-header my-4">
+            <p class="lead text-center text-muted pt-2 mb-5">لیست تمامی نمادهایی که در سایت مورد بررسی قرار گرفته اند.</p>
+
+            <!-- Search form -->
+            <form class="form-inline d-flex justify-content-center md-form form-sm mt-0">
+                <i class="fas fa-search ml-2" aria-hidden="true"></i>
+                <input id="search-symbols-analyzed" class="form-control form-control-sm ml-3 w-75" type="text" placeholder="جست و جو"
+                       aria-label="Search">
+            </form>
+            <div class="row">
+                {% for cats in categories %}
+                    <!-- Grid column -->
+                    <div class="col-lg-3 col-md-6 mc-col-symbols-analyze">
+                        {% for cat in cats %}
+                            <!-- Panel -->
+                            <div class="card mb-4 mc-category-symbols-analyze">
+
+                                <div class="card-header white-text primary-color">
+                                     <a href="{% url 'bourseapp:category-detail' cat.category.id %}" class="text-white">{{ cat.category.title }}</a>
+                                </div>
+
+                                <div class="card-body text-center px-4">
+                                    <div class="list-group list-group-flush">
+                                        {% for symbol in cat.symbols %}
+                                            <div  value="{{ symbol.symbol }}" class="mc-symbol-tile">
+                                                <div class="row list-group-item d-flex justify-content-between dark-grey-text mt-0 mb-0">
+
+
+                                                    <a href="{% url 'bourseapp:company-detail' symbol.id %}" class="">
+                                                        {% if symbol.pic %}
+                                                            <img src="{{ symbol.pic.url }}" alt="" class="img-fluid rounded-circle img-thumbnail" style="height: 40px; width: 40px; object-fit: contain">
+                                                        {% else %}
+                                                            <i class="fas fa-chart-bar fa-lg blue p-2 img-fluid rounded-circle img-thumbnail text-white" style="height: 40px; width: 40px; object-fit: contain"></i>
+                                                        {% endif %}
+                                                        {{ symbol.symbol }}
+                                                    </a>
+                                                    <a href="{% url 'bourseapp:company-technical-view' symbol.id %}" class="flex-left ml-2"><i class="fa fa-analytics"></i></a>
+
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div> <!-- end row -->
+
+        </section>
+        <!-- Section -->
+
+    </div>
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+    <input type="hidden" id="url-symbol" data-url="{% url 'api-bourseapp:symbols-view' %}" />
+
+    <input type="hidden" id="symbol-page-is-superuser" data-state="{{ request.user.is_superuser }}">
+
+
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'bourseapp/js/pages/symbols_analyzed.js' %}"></script>
+{% endblock %}

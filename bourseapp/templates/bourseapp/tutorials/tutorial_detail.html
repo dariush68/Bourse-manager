@@ -1,0 +1,175 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load social_share %}
+{% block title %}
+    <title> {{ tutorial.title }}</title>
+
+    <meta name="description" content="{{ tutorial.description|truncatechars:120 }}"/>
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:type" content="tutorial" />
+    <meta property="og:title" content="{{ tutorial.title }}" />
+    <meta property="og:description" content="{{ tutorial.description|truncatechars:120 }}" />
+    <meta property="og:url" content="{{ request.get_host }}{% url 'bourseapp:tutorial-detail' tutorial.id %}"/>
+    <meta property="og:site_name" content="مدیابورس" />
+    {% if tutorial.pic %}
+        <meta property="og:image" content="{{ request.get_host }}{{ tutorial.pic.url }}" />
+    {% endif %}
+    <meta property="article:tag" content="بورس" />
+    <meta property="article:tag" content="آموزش بورس" />
+    <meta property="article:tag" content="بورس تهران" />
+    <meta property="article:tag" content="{{ tutorial.subCategory.title }}" />
+    <meta property="article:tag" content="{{ tutorial.subCategory.category.title }}" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:description" content="{{ tutorial.description|truncatechars:120 }}" />
+    <meta name="twitter:title" content="{{ tutorial.title }}" />
+    {% if tutorial.pic %}
+        <meta name="twitter:image" content="{{ request.get_host }}{{ tutorial.pic.url }}" />
+    {% endif %}
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables.min.css' %}"><!-- MDBootstrap Datatables  -->
+    <!-- Material Design Bootstrap table -->
+    <link rel="stylesheet" href="{% static 'bourseapp/css/addons/datatables-select.min.css' %}"><!-- MDBootstrap Datatables  -->
+
+    <div class="container mt-5">
+
+
+        <!--Section: Content-->
+        <section>
+
+            <!-- Grid row -->
+            <div class="row">
+
+                <!-- Grid column -->
+                <div class="col-lg-7 mb-4 align-self-center text-center text-lg-right">
+
+                    <h2 class="h2 mb-5">
+                        {{ tutorial.title }}
+
+                        {% if request.user.is_superuser %}
+                            <a href="{% url 'admin:bourseapp_tutorial_change' tutorial.id %}" target="_blank"><i class="fa fa-edit" style="color: #0d5bdd; font-size: 16px"></i></a>
+                            <a href="{% url 'admin:bourseapp_tutorial_delete' tutorial.id %}" target="_blank"><i class="fa fa-trash" style="color: #9f105c; font-size: 16px"></i></a>
+                        {% endif %}
+                    </h2>
+
+                    <p class="font-weight-bold text-right">دسته بندی: {{ tutorial.category }}</p>
+
+                    <span class="badge badge-primary  float-left">{{ tutorial.user }}</span>
+                    <span class="badge badge-primary  float-left ml-1">{{ tutorial.createAt|to_jalali:'%y/%m/%d' }}</span>
+                    <div class="row mr-1">
+                        {% post_to_telegram tutorial.title url '<i class="fab fa-telegram fa-lg "></i>' %}
+                        {% post_to_twitter  tutorial.title url '<i class="fab fa-twitter fa-lg mr-2"></i>' %}
+                        <a data-toggle="tooltip" title="فعال در موبایل ها" href="whatsapp://send?text=http://{{ request.get_host }}{{url}}  {{ tutorial.title }}" data-action="share/whatsapp/share">
+                            <i class="fab fa-whatsapp fa-lg mr-2"></i>
+                        </a>
+                    </div>
+
+                    <p class="text-muted mb-4">{{ tutorial.description | safe }}</p>
+
+                    {% if tutorial.file %}
+                        <a href="{{ tutorial.file.url }}"  target="_blank" class="btn btn-cyan waves-effect btn-md ml-lg-0"><i class="fa fa-download fa-lg pr-1"></i> دانلود آموزش</a>
+                    {% endif %}
+
+                    {% if tutorial.externalLink %}
+                        <a href="{{ tutorial.externalLink }}"  target="_blank" class="btn btn-cyan waves-effect btn-md ml-lg-0"><i class="fa fa-external-link fa-lg pr-1"></i> لینک آموزش</a>
+                    {% endif %}
+
+                    {% if tutorial.externalLink %}
+                    {% endif %}
+                    {{ tutorial.aparatEmbedCode|safe }}
+
+                </div>
+                <!-- Grid column -->
+
+                <!-- Grid column -->
+                <div class="col-lg-5 mb-4">
+
+                    <!--  image -->
+                    <div class="view overlay">
+
+                        {% if tutorial.category == 'تحلیل بازار' %}
+                            <img class="img-fluid mx-auto" src="{% static 'bourseapp/images/tutorial_bazar.jpg' %}" alt="{{ tutorial.category }}">
+                        {% elif tutorial.category == 'تحلیل بنیادی'%}
+                            <img class="img-fluid mx-auto" src="{% static 'bourseapp/images/tutorial_fundamental.png' %}" alt="{{ tutorial.category }}">
+                        {% else %}
+                            <img class="img-fluid mx-auto" src="{% static 'bourseapp/images/tutorial_technical.png' %}" alt="{{ tutorial.category }}">
+                        {% endif %}
+
+
+                        <a>
+                            <div class="mask rgba-white-slight"></div>
+                        </a>
+                    </div>
+
+                </div>
+                <!-- Grid column -->
+
+            </div>
+            <!-- Grid row -->
+
+        </section>
+        <!--Section: Content-->
+
+
+    </div>
+
+
+
+
+
+    <div class="d-none container my-5 py-5 z-depth-1">
+
+        <!--Section: Content-->
+        <section class="px-md-5 mx-md-5 dark-grey-text text-center text-lg-left">
+
+            <!--Grid row-->
+            <div class="row">
+                <h3 class="font-weight-bold text-right">{{ tutorial.title }}</h3>
+
+                <p class="font-weight-bold text-right">{{ tutorial.createAt|to_jalali:'%y/%m/%d' }}
+                    <span class="badge badge-secondary  float-left"><small>{{ tutorial.user }}</small></span>
+                </p>
+
+                <a href="{{ tutorial.externalLink }}" target="_blank"><i class="fa fa-link"><span style="font-family: IRANSans"> لینک آموزش  </span></i></a>
+
+                {% if tutorial.file %}
+                    <a href="{{ tutorial.file }}" target="_blank">
+                        {#                            <img src="{{ tutorial.file }}" class="img-fluid" alt="" style="width: 150px; height: 150px; object-fit: cover">#}
+                        <i class="fa fa-download"></i>
+                    </a>
+                {% else %}
+                    {#                        <img src="{% static 'bourseapp/images/news.png' %}" class="img-fluid" alt="" style="width: 150px; height: 150px; object-fit: cover">#}
+
+                {% endif %}
+
+            </div>
+            <!--Grid row-->
+
+            <hr>
+            <p class="text-muted text-right text-justify" dir="rtl">{{ tutorial.description | safe  }}</p>
+
+
+        </section>
+        <!--Section: Content-->
+
+    </div>
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+
+    <!-- selected category id -->
+{#    <input type="hidden" id="category-selected-id" selected-id="-1">#}
+
+{% endblock %}
+
+{% block javascript %}
+{% endblock %}

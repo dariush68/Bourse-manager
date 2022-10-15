@@ -1,0 +1,98 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load auth_extras %}
+{% block title %}
+    <title>تحلیل نماد {{ company.symbol }}</title>
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+    <link rel="stylesheet" href="{% static 'bourseapp/css/ekko-lightbox.css' %}">
+    <link rel="stylesheet" href="{% static 'bourseapp/css/company_technical_view.css' %}">
+
+    <!-- dariush technicals -->
+    {% if request.user|has_abedi%}
+
+        <div class="container z-depth-1 my-5 py-5 px-4 px-lg-0" dir="ltr">
+
+            <!-- Section -->
+            <section>
+
+
+
+                <h3 class="font-weight-bold text-center dark-grey-text pb-2">{{ company.symbol }}</h3>
+                <hr class="w-header my-4">
+                <p class="lead text-center text-muted pt-2 mb-5">
+                    {{ company.description }}
+                </p>
+
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+
+                        <ol class="timeline">
+
+                            {% for technical in technicals_watch %}
+
+                                <li class="timeline-element">
+                                    <h5 class="font-weight-bold dark-grey-text mb-3">{{ technical.title }}
+                                        {% if user.is_superuser%}
+                                            <a class="small" href="{% url 'admin:bourseapp_technical_change' technical.id %}" target="_blank"><i class="fas fa-pen-fancy" style="color: black"></i></a>
+                                        {% endif %}
+                                    </h5>
+                                    <p class="grey-text font-small"><time datetime="2017-08-17">{{ technical.createAt|to_jalali:'%y/%m/%d' }}</time></p>
+                                    {% if technical.pic %}
+                                        <a href="{{ technical.pic.url }}" data-toggle="lightbox" data-gallery="technical-gallery">
+                                        <p><img class="img-fluid z-depth-1-half rounded" src="{{ technical.pic.url }}" alt="{{ technical.title }}" ></p>
+                                        </a>
+                                    {% endif %}
+{#                                    <p><img class="img-fluid z-depth-1-half rounded" src="https://mdbootstrap.com/img/Photos/Horizontal/Work/12-col/img%20(6).jpg" alt="..."></p>#}
+                                    <p class="text-muted">{{ technical.description|safe }}</p>
+                                </li>
+
+                            {% endfor %}
+
+                        </ol>
+
+                    </div>
+                </div>
+
+            </section>
+            <!-- Section -->
+
+        </div>
+
+
+
+    {% else %}
+        <p>مشاهده لیستی تمامی تحلیل ها</p>
+    {% endif %}
+
+
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+
+    <!-- selected category id -->
+{#    <input type="hidden" id="category-selected-id" selected-id="-1">#}
+
+
+
+{% endblock %}
+
+{% block javascript %}
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="{% static 'bourseapp/js/ekko-lightbox.min.js' %}"></script>
+
+    <script>
+        $(document).on('click', '[data-toggle="lightbox"]', function(event) {
+            event.preventDefault();
+            $(this).ekkoLightbox();
+        });
+
+    </script>
+{% endblock %}

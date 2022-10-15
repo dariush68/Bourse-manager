@@ -1,0 +1,464 @@
+<!-- use base html template -->
+{% extends 'bourseapp/base.html' %}
+{% load jalali_tags %}
+{% load social_share %}
+{% load auth_extras %}
+{% block title %}
+    <title>تحلیل بازار {{ bazaar.company.symbol }}</title>
+{% endblock %}
+<!-- begin of body block -->
+{% block body %}
+
+    <!-- load static file in django -->
+    {% load staticfiles %}
+
+    <div class="container">
+
+        <!-- user portfolio and request -->
+        <div class="row">
+
+            <!-- user portfolio -->
+            <div class="col-xl-6">
+                <div class="card mt-1 mb-3">
+                    <div class="card-header">
+                        سبد کاربران
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-xl-6">
+
+
+                                <div class=" scrollbar-ripe-malinka mb-2">
+
+                                    <!-- Search form -->
+                                    <form class="form-inline d-flex justify-content-center md-form form-sm mt-0">
+                                        <input class="form-control form-control-sm ml-3 w-75" type="text" placeholder="جست و جوی کاربر" aria-label="Search">
+                                        <i class="fas fa-search" aria-hidden="true"></i>
+                                    </form>
+                                    <div class="border p-1" style="position: relative; overflow-y: scroll; height: 400px;">
+                                        {% for userItm in portfolio_users %}
+                                            <a onclick="loadUserPortfolioSymbols_admin('{{ userItm.user }}')">
+                                                <div class="media white z-depth-1 rounded mb-1" dir="ltr">
+                                                    <div class="media-body p-1">
+                                                        <p class="text-uppercase text-muted mb-1"><small>{{ userItm.user__username }}</small></p>
+                                                        <h7 class="font-weight-bold mb-0">{{ userItm.user__first_name }} {{ userItm.user__last_name }}</h7>
+                                                    </div>
+                                                    <i class="fa fa-user-alt green z-depth-1 p-3 rounded-right text-white" style="height: 54px; width: 54px"></i>
+                                                </div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div id="container-user-portfolio" class="col-xl-6 border p-2">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- user request -->
+            <div class="col-xl-6">
+                <div class="card mt-1 mb-3">
+                    <div class="card-header">
+                        درخواست تحلیل کاربران
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-xl-6">
+
+
+                                <div class=" scrollbar-ripe-malinka mb-2">
+
+                                    <!-- Search form -->
+                                    <form class="form-inline d-flex justify-content-center md-form form-sm mt-0">
+                                        <input class="form-control form-control-sm ml-3 w-75" type="text" placeholder="جست و جوی کاربر" aria-label="Search">
+                                        <i class="fas fa-search" aria-hidden="true"></i>
+                                    </form>
+                                    <div class="border" style="position: relative; overflow-y: scroll; height: 400px;">
+                                        {% for userItm in req_users %}
+                                            <a onclick="loadUserRequestedSymbols_admin('{{ userItm.user }}')">
+                                                <div class="media white z-depth-1 rounded mb-1" dir="ltr">
+                                                    <div class="media-body p-1">
+                                                        <p class="text-uppercase text-muted mb-1"><small>{{ userItm.user__username }}</small></p>
+                                                        <h7 class="font-weight-bold mb-0">{{ userItm.user__first_name }} {{ userItm.user__last_name }}</h7>
+                                                    </div>
+                                                    <i class="fa fa-user-alt green z-depth-1 p-3 rounded-right text-white" style="height: 54px; width: 54px"></i>
+                                                </div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div id="container-user-requests" class="col-xl-6 border">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- all users, news, reqs -->
+        <div class="row">
+
+            <!-- all users -->
+            <div class="col-xl-3 col-md-6">
+
+                <!-- super admin users -->
+                <div class="card mb-2">
+                    <div class="card-header">
+                        موئسس ها
+                    </div>
+                    <div class="card-body">
+                        {% for user in users %}
+                            {% if user.is_superuser%}
+                                <div class="media white z-depth-1 rounded mb-1" dir="ltr">
+                                    <div class="media-body p-1">
+                                        <a href="{% url 'admin:auth_user_change' user.id %}" target="_blank"><p class="text-uppercase text-muted mb-1"><small>{{ user }}</small></p></a>
+                                        <h7 class="font-weight-bold mb-0">{{ user.first_name }} {{ user.last_name }}</h7>
+                                    </div>
+                                    <i class="fa fa-user-tie fa-lg blue z-depth-1 p-3 rounded-right text-white" style="height: 54px; width: 54px"></i>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- admin users -->
+                <div class="card scrollbar-ripe-malinka mb-2">
+                    <div class="card-header">
+                        ادمین ها
+                    </div>
+                    <div class="card-body" style="position: relative; overflow-y: scroll; height: 400px;">
+                        {% for user in users %}
+                            {% if user|has_group:"level1"%}
+                                <div class="media white z-depth-1 rounded mb-1" dir="ltr">
+                                    <div class="media-body p-1">
+                                        <a href="{% url 'admin:auth_user_change' user.id %}" target="_blank"><p class="text-uppercase text-muted mb-1"><small>{{ user }}</small></p></a>
+                                        <h7 class="font-weight-bold mb-0">{{ user.first_name }} {{ user.last_name }}</h7>
+                                    </div>
+                                    <i class="fa fa-user-alt green z-depth-1 p-3 rounded-right text-white" style="height: 54px; width: 54px"></i>
+{#                                    <i class="green z-depth-1 p-3 rounded-right text-white small" style="height: 54px; width: 70px">ادمین</i>#}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- all users -->
+                <div class="card scrollbar-ripe-malinka mb-2">
+                    <div class="card-header">
+                        کاربران
+                    </div>
+                    <div id="card-all-users" class="card-body" style="position: relative; overflow-y: scroll; height: 400px;">
+                        {% for user in users %}
+
+
+                                {% if user.is_superuser%}
+{#                                    <i class="blue z-depth-1 p-3 rounded-right text-white small" style="height: 54px; width: 70px">موئسس</i>#}
+                                {% elif user|has_group:"level1"%}
+{#                                    <i class="green z-depth-1 p-3 rounded-right text-white small" style="height: 54px; width: 70px">ادمین</i>#}
+                                {% elif user|has_group:"vip"%}
+{#                                    <i class="yellow z-depth-1 p-3 rounded-right text-black small" style="height: 54px; width: 70px">VIP</i>#}
+                                {% elif user|has_group:"level2"%}
+                                    <div class="media white z-depth-1 rounded mb-1" dir="ltr">
+                                        <div class="media-body p-1">
+                                            <a href="{% url 'admin:auth_user_change' user.id %}" target="_blank"><p class="text-uppercase text-muted mb-1"><small>{{ user }}</small></p></a>
+                                            <h7 class="font-weight-bold mb-0">{{ user.first_name }} {{ user.last_name }}</h7>
+                                        </div>
+                                        <i class="orange z-depth-1 p-3 rounded-right text-white small" style="height: 54px; width: 70px">سطح 2</i>
+                                    </div>
+                                {% else%}
+                                    <div id="user-awaitForVIP-{{ user.id }}" class="media white z-depth-1 rounded mb-1" dir="ltr">
+                                        <div class="media-body p-1">
+                                            <a href="{% url 'admin:auth_user_change' user.id %}" target="_blank">
+                                                <p class="text-uppercase text-muted mb-1">
+                                                    <a class="float-left" target="_blank" onclick="userVIPByManager({{ user.id }}, '1', '{{ user }}', '{{ user.first_name }}', '{{ user.last_name }}' )" data-toggle="tooltip" title="ارتقاع سطح به VIP"><i class="small" style="color: #c69500">VIP</i></a>
+                                                    <a class="float-left" target="_blank" href="{% url 'admin:auth_user_change' user.id %}" data-toggle="tooltip" title="تغییر اطلاعات کاربر"><i class="fa fa-edit ml-1 small" style="color: #a0a0a0"></i></a>
+                                                    <a class="float-left" target="_blank" href="{% url 'admin:auth_user_delete' user.id %}" data-toggle="tooltip" title="حذف کاربر"><i class="fa fa-trash-alt ml-1 small" style="color: #a0a0a0"></i></a>
+                                                    <small>{{ user }}</small>
+                                                </p>
+                                            </a>
+                                            <h7 class="font-weight-bold mb-0">{{ user.first_name }} {{ user.last_name }}</h7>
+                                        </div>
+                                        <i class="blue-grey z-depth-1 p-3 rounded-right text-white small" style="height: 54px; width: 70px">کاربر</i>
+                                    </div>
+                                {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- portfolio users -->
+                <div class="card scrollbar-ripe-malinka mb-2">
+                    <div class="card-header">
+                        کاربران دارای سبد
+                    </div>
+                    <div id="card-portfolio-users" class="card-body" style="position: relative; overflow-y: scroll; height: 400px;">
+                        {% for user in portfolio_users %}
+                            <div id="user-VIP-{{ user.id }}" class="media white z-depth-1 rounded mb-1" dir="ltr">
+                                <div class="media-body p-1">
+                                    <a href="{% url 'admin:auth_user_change' user.user %}" target="_blank">
+                                        <p class="text-uppercase text-muted mb-1">
+{#                                            <a class="float-left" target="_blank" onclick="userVIPByManager({{ user.user }}, '0', '{{ user.user__username }}', '{{ user.user__first_name }}', '{{ user.user__last_name }}' )" data-toggle="tooltip" title="حذف سطح سبدگردانی">#}
+{#                                                <i class="fa fa-times small" style="color: #9f105c"></i><i class="small" style="color: #9f105c">PFO</i></a>#}
+                                            <a class="float-left" target="_blank" href="{% url 'admin:auth_user_change' user.user %}" data-toggle="tooltip" title="تغییر اطلاعات کاربر"><i class="fa fa-edit ml-1 small" style="color: #a0a0a0"></i></a>
+                                            <a class="float-left" target="_blank" href="{% url 'admin:auth_user_delete' user.user %}" data-toggle="tooltip" title="حذف کاربر"><i class="fa fa-trash-alt ml-1 small" style="color: #a0a0a0"></i></a>
+                                            <small>{{ user.user__username }}</small>
+                                        </p>
+                                    </a>
+                                    <h7 class="font-weight-bold mb-0">{{ user.user__first_name }} {{ user.user__last_name }}</h7>
+                                </div>
+                                <i class="fa fa-user-alt success-color z-depth-1 p-3 rounded-right text-black" style="height: 54px; width: 54px"></i>
+                            </div>
+
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- vip users -->
+                <div class="card scrollbar-ripe-malinka mb-2">
+                    <div class="card-header">
+                        کاربران VIP
+                    </div>
+                    <div id="card-vip-users" class="card-body" style="position: relative; overflow-y: scroll; height: 400px;">
+                        {% for user in users %}
+                            {% if user|has_group:"vip"%}
+                                <div id="user-VIP-{{ user.id }}" class="media white z-depth-1 rounded mb-1" dir="ltr">
+                                    <div class="media-body p-1">
+                                        <a href="{% url 'admin:auth_user_change' user.id %}" target="_blank">
+                                            <p class="text-uppercase text-muted mb-1">
+                                                <a class="float-left" target="_blank" onclick="userVIPByManager({{ user.id }}, '0', '{{ user }}', '{{ user.first_name }}', '{{ user.last_name }}' )" data-toggle="tooltip" title="حذف سطح VIP">
+                                                    <i class="fa fa-times small" style="color: #9f105c"></i><i class="small" style="color: #9f105c">VIP</i></a>
+                                                <a class="float-left" target="_blank" href="{% url 'admin:auth_user_change' user.id %}" data-toggle="tooltip" title="تغییر اطلاعات کاربر"><i class="fa fa-edit ml-1 small" style="color: #a0a0a0"></i></a>
+                                                <a class="float-left" target="_blank" href="{% url 'admin:auth_user_delete' user.id %}" data-toggle="tooltip" title="حذف کاربر"><i class="fa fa-trash-alt ml-1 small" style="color: #a0a0a0"></i></a>
+                                                <small>{{ user }}</small>
+                                            </p>
+                                        </a>
+                                        <h7 class="font-weight-bold mb-0">{{ user.first_name }} {{ user.last_name }}</h7>
+                                    </div>
+                                    <i class="fa fa-user-alt yellow z-depth-1 p-3 rounded-right text-black" style="height: 54px; width: 54px"></i>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- in active users -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                       کاربران منتظر تایید
+                    </div>
+                    <div class="card-body">
+                        {% for user in users_inactive %}
+                            <div id="user-awaitForCheck-{{ user.id }}" class="media white z-depth-1 rounded mb-1" dir="ltr">
+
+                                <div class="media-body p-1">
+                                    <a href="{% url 'admin:auth_user_change' user.id %}" target="_blank">
+                                        <p class="text-uppercase text-muted mb-1">
+                                            <a class="float-left" target="_blank" onclick="userApproveByManager({{ user.id }})" data-toggle="tooltip" title="تایید کاربر"><i class="fa fa-calendar-check" style="color: green"></i></a>
+                                            <a class="float-left" target="_blank" href="{% url 'admin:auth_user_change' user.id %}" data-toggle="tooltip" title="تغییر اطلاعات کاربر"><i class="fa fa-edit ml-1 small" style="color: #a0a0a0"></i></a>
+                                            <a class="float-left" target="_blank" href="{% url 'admin:auth_user_delete' user.id %}" data-toggle="tooltip" title="حذف کاربر"><i class="fa fa-trash-alt ml-1 small" style="color: #a0a0a0"></i></a>
+                                            <small>{{ user }}</small>
+                                        </p>
+                                    </a>
+                                    <h7 class="font-weight-bold mb-0">{{ user.first_name }} {{ user.last_name }}</h7>
+                                </div>
+
+                                <i class="warning-color z-depth-1 p-3 rounded-right text-black small" style="height: 54px; width: 70px">انتظار</i>
+
+                            </div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+
+                <!-- pupalar analyze -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                       تحلیل های پربازدید
+                    </div>
+                    <div class="card-body">
+                        {% for tec in tecnical_popular %}
+                            <div  class="media white z-depth-1 rounded mb-1" dir="ltr">
+
+                                <div class="media-body p-1">
+                                    <p class="text-uppercase text-muted mb-1">
+                                        <a class="float-left small mt-1" target="_blank" href="{% url 'bourseapp:technical-detail' tec.id %}" data-toggle="tooltip" title="مشاهده تحلیل"  style="color: #a0a0a0">{{ tec.hit_count }}<i class="fa fa-eye mr-1 ml-1" style="color: #a0a0a0"></i></a>
+                                        <a class="float-left" target="_blank" href="{% url 'admin:bourseapp_technical_change'  tec.id %}" data-toggle="tooltip" title="تغییر اطلاعات تحلیل"><i class="fa fa-edit ml-1 small" style="color: #a0a0a0"></i></a>
+                                        <a class="float-left" target="_blank" href="{% url 'admin:bourseapp_technical_delete'  tec.id %}" data-toggle="tooltip" title="حذف تحلیل"><i class="fa fa-trash-alt ml-1 small" style="color: #a0a0a0"></i></a>
+                                        <small>{{ tec.createAt|to_jalali:'%y/%m/%d' }}</small>
+                                    </p>
+                                    <a href="{% url 'admin:bourseapp_technical_change' tec.id %}" target="_blank"><h7 class="font-weight-bold mb-0" style="color: #2d2d2d">{{ tec.title|truncatechars:50 }}</h7></a>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- news -->
+            <div class="col-xl-3 col-md-6">
+                <!-- in approved news -->
+                <div class="card">
+                    <div class="card-header">
+                       خبرهای منتظر تایید
+                    </div>
+                    <div class="card-body">
+                        {% for news in news_inactive %}
+                            <div id="news-awaitForCheck-{{ news.id }}" class="media white z-depth-1 rounded mb-1" dir="ltr">
+
+                                <div class="media-body p-1">
+                                    <p class="text-uppercase text-muted mb-1">
+                                        <a class="float-left" target="_blank" onclick="newsApproveByManager({{ news.id }})" data-toggle="tooltip" title="تایید خبر"><i class="fa fa-calendar-check" style="color: green"></i></a>
+                                        <a class="float-left" target="_blank" href="{% url 'bourseapp:news-detail' news.id %}" data-toggle="tooltip" title="مشاهده خبر" ><i class="fa fa-eye ml-1 small" style="color: #a0a0a0"></i></a>
+                                        <a class="float-left" target="_blank" href="{% url 'admin:bourseapp_news_change'  news.id %}" data-toggle="tooltip" title="تغییر اطلاعات خبر"><i class="fa fa-edit ml-1 small" style="color: #a0a0a0"></i></a>
+                                        <a class="float-left" target="_blank" href="{% url 'admin:bourseapp_news_delete'  news.id %}" data-toggle="tooltip" title="حذف خبر"><i class="fa fa-trash-alt ml-1 small" style="color: #a0a0a0"></i></a>
+                                        <small>{{ news.createAt|to_jalali:'%y/%m/%d' }}</small>
+                                    </p>
+                                    <a href="{% url 'admin:bourseapp_news_change' news.id %}" target="_blank"><h7 class="font-weight-bold mb-0" style="color: #2d2d2d">{{ news.title|truncatechars:30 }}</h7></a>
+                                </div>
+
+                                <i class="alert-danger z-depth-1 p-3 rounded-right text-black small" style="height: 54px; width: 70px">انتظار</i>
+
+                            </div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+
+                <!-- pupiolar news -->
+                <div class="card scrollbar-ripe-malinka mt-3">
+                    <div class="card-header">
+                       خبرهای پربازدید
+                    </div>
+                    <div class="card-body" style="position: relative; overflow-y: scroll; height: 500px;">
+                        {% for news in news_popular %}
+                            <div id="news-awaitForCheck-{{ news.id }}" class="media white z-depth-1 rounded mb-1" dir="ltr">
+
+                                <div class="media-body p-1">
+                                    <p class="text-uppercase text-muted mb-1">
+                                        <a class="float-left small mt-1" target="_blank" href="{% url 'bourseapp:news-detail' news.id %}" data-toggle="tooltip" title="مشاهده خبر"  style="color: #a0a0a0">{{ news.hit_count }}<i class="fa fa-eye mr-1 ml-1" style="color: #a0a0a0"></i></a>
+                                        <a class="float-left" target="_blank" href="{% url 'admin:bourseapp_news_change'  news.id %}" data-toggle="tooltip" title="تغییر اطلاعات خبر"><i class="fa fa-edit ml-1 small" style="color: #a0a0a0"></i></a>
+                                        <a class="float-left" target="_blank" href="{% url 'admin:bourseapp_news_delete'  news.id %}" data-toggle="tooltip" title="حذف خبر"><i class="fa fa-trash-alt ml-1 small" style="color: #a0a0a0"></i></a>
+                                        <small>{{ news.createAt|to_jalali:'%y/%m/%d' }}</small>
+                                    </p>
+                                    <a href="{% url 'admin:bourseapp_news_change' news.id %}" target="_blank"><h7 class="font-weight-bold mb-0" style="color: #2d2d2d">{{ news.title|truncatechars:50 }}</h7></a>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- reqs -->
+            <div class="col-xl-3 col-md-6">
+
+                <!-- user profilio -->
+                <div class="card scrollbar-ripe-malinka mb-2">
+                    <div class="card-header">
+                        نمادهای درخواستی برای تحلیل
+                    </div>
+                    <div class="card-body" style="position: relative; overflow-y: scroll; height: 400px;">
+                        {% for target in req_analyze %}
+                            <!--target tiles-->
+{#                            <p>1223</p>#}
+                            <div class=" mb-1">
+                                <a href="{% url 'bourseapp:company-detail' target.company%}">
+
+                                    <div class="media white z-depth-0 border rounded">
+                                        {% if target.company__pic %}
+                                            <img src="http://{{ request.get_host }}/media/{{ target.company__pic}}" alt="" class="rounded-right z-depth-1" style="height: 53px; width: 53px; object-fit: contain">
+                                        {% else %}
+                                            <i class="fas fa-chart-bar fa-lg blue z-depth-1 p-3 rounded-right text-white"  style="height: 53px; width: 53px;"></i>
+                                        {% endif %}
+                                        <div class="media-body p-1">
+{#                                            <p class="text-uppercase text-muted mb-1"><small>{{ target.createAt|to_jalali:'%y/%m/%d' }}</small></p>#}
+                                            <h7 class="font-weight-bold mb-0 small">
+                                                {{ target.company__symbol }}
+                                                {% if user.is_superuser%}
+                                                    <a class="small" href="{% url 'admin:bourseapp_company_change' target.company %}" target="_blank"><i class="fa fa-edit text-black-50"></i></a>
+                                                {% endif %}
+                                                <span class="small mr-1 ml-1 float-left" style="color: #c1c1c1" > تعداد درخواست: {{ target.num_symbol }}</span>
+                                            </h7>
+
+                                        </div>
+
+                                    </div>
+
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- profilio stocks -->
+                <div class="card scrollbar-ripe-malinka mb-2">
+                    <div class="card-header">
+                        نمادهای موجود در سبدها
+                    </div>
+                    <div class="card-body" style="position: relative; overflow-y: scroll; height: 400px;">
+                        {% for target in portfolio_symbols %}
+                            <!--target tiles-->
+{#                            <p>1223</p>#}
+                            <div class=" mb-1">
+                                <a href="{% url 'bourseapp:company-detail' target.company%}">
+
+                                    <div class="media white z-depth-0 border rounded">
+                                        {% if target.company__pic %}
+                                            <img src="http://{{ request.get_host }}/media/{{ target.company__pic}}" alt="" class="rounded-right z-depth-1" style="height: 53px; width: 53px; object-fit: contain">
+                                        {% else %}
+                                            <i class="fas fa-chart-bar fa-lg blue z-depth-1 p-3 rounded-right text-white"  style="height: 53px; width: 53px;"></i>
+                                        {% endif %}
+                                        <div class="media-body p-1">
+{#                                            <p class="text-uppercase text-muted mb-1"><small>{{ target.createAt|to_jalali:'%y/%m/%d' }}</small></p>#}
+                                            <h7 class="font-weight-bold mb-0 small">
+                                                {{ target.company__symbol }}
+                                                {% if user.is_superuser%}
+                                                    <a class="small" href="{% url 'admin:bourseapp_company_change' target.company %}" target="_blank"><i class="fa fa-edit text-black-50"></i></a>
+                                                {% endif %}
+                                                <span class="small mr-1 ml-1 float-left" style="color: #c1c1c1" > تعداد افراد: {{ target.num_symbol }}</span>
+                                            </h7>
+
+                                        </div>
+
+                                    </div>
+
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- base url address -->
+    <input type="hidden" id="url-base" data-url="http://{{ request.get_host }}/" />
+    <input type="hidden" id="url-news-approve" data-url="{% url 'bourseapp:news-approve' 1234%}" />
+    <input type="hidden" id="url-user-approve" data-url="{% url 'bourseapp:user-approve' 1234%}" />
+    <input type="hidden" id="url-user-vip" data-url="{% url 'bourseapp:user-vip' 1234 5678%}" />
+    <input type="hidden" id="url-symbol-req-list" data-url="{% url 'api-bourseapp:list-symbol-analyze'%}" />
+    <input type="hidden" id="url-symbol-portfolio-list" data-url="{% url 'api-bourseapp:list-symbol-portfolio'%}" />
+    <input type="hidden" id="url-symbol-detail" data-url="{% url 'bourseapp:company-detail' 1234%}" />
+
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'bourseapp/js/pages/manager_panel.js' %}"></script>
+{% endblock %}
